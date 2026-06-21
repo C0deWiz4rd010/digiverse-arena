@@ -1,0 +1,69 @@
+// ============================================================================
+// DigiVerse Arena — Global Styles
+// ============================================================================
+@use 'styles/tokens';
+@use 'styles/mixins' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 20% -10%, rgba(0, 229, 255, 0.12), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(139, 92, 246, 0.14), transparent 42%),
+    var(--color-bg-950);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-3);
+}
+
+a {
+  color: var(--color-primary-400);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  @include focus-ring;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+// Honour the global reduced-motion preference.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

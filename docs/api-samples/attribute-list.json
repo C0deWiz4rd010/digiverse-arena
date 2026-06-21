@@ -1,0 +1,21 @@
+{
+  "content": {
+    "name": "Attribute",
+    "description": "Attribute refers to the type of computer file a Digimon represents. Vaccine > Virus, Virus > Data, Data > Vaccine. Free and Variable are related to Ancient Species; Variable (Hybrid) adapts to the opponent.",
+    "fields": [
+      { "id": 1, "name": "Data", "href": "https://digi-api.com/api/v1/attribute/1" },
+      { "id": 2, "name": "Free", "href": "https://digi-api.com/api/v1/attribute/2" },
+      { "id": 3, "name": "Virus", "href": "https://digi-api.com/api/v1/attribute/3" },
+      { "id": 4, "name": "Vaccine", "href": "https://digi-api.com/api/v1/attribute/4" },
+      { "id": 5, "name": "Unknown", "href": "https://digi-api.com/api/v1/attribute/5" }
+    ]
+  },
+  "pageable": {
+    "currentPage": 0,
+    "elementsOnPage": 5,
+    "totalElements": 7,
+    "totalPages": 1,
+    "previousPage": "",
+    "nextPage": "https://digi-api.com/api/v1/attribute?page=1"
+  }
+}

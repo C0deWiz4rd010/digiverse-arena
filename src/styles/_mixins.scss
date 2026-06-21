@@ -1,0 +1,34 @@
+// ============================================================================
+// DigiVerse Arena — Breakpoints & Mixins (mobile-first)
+// ============================================================================
+
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+$bp-2xl: 1536px;
+
+@mixin from($bp) {
+  @media (min-width: $bp) {
+    @content;
+  }
+}
+
+@mixin glass {
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-soft);
+}
+
+@mixin focus-ring {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+// Respect reduced motion at the source.
+@mixin motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}

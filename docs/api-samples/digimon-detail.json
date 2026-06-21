@@ -1,0 +1,32 @@
+{
+  "id": 1,
+  "name": "Agumon",
+  "xAntibody": false,
+  "images": [
+    { "href": "https://digi-api.com/images/digimon/w/Agumon.png", "transparent": false }
+  ],
+  "levels": [{ "id": 4, "level": "Child" }],
+  "types": [{ "id": 1, "type": "Reptile" }],
+  "attributes": [{ "id": 4, "attribute": "Vaccine" }],
+  "fields": [
+    { "id": 8, "field": "Deep Savers", "image": "https://digi-api.com/images/etc/fields/Deep_Savers.png" },
+    { "id": 5, "field": "Dragon's Roar", "image": "https://digi-api.com/images/etc/fields/Dragon's_Roar.png" },
+    { "id": 9, "field": "Virus Busters", "image": "https://digi-api.com/images/etc/fields/Virus_Busters.png" }
+  ],
+  "releaseDate": "1997",
+  "descriptions": [
+    { "origin": "reference_book", "language": "jap", "description": "成長して二足歩行ができるようになった、小型の恐竜の様な姿をした爬虫類型デジモン。" },
+    { "origin": "reference_book", "language": "en_us", "description": "A Reptile Digimon with an appearance resembling a small dinosaur, it has grown and become able to walk on two legs. Its Special Move is spitting a fiery breath from its mouth to attack the opponent (Baby Flame)." }
+  ],
+  "skills": [
+    { "id": 1, "skill": "Baby Flame", "translation": "", "description": "Spits a fiery breath from its mouth to attack the opponent." },
+    { "id": 4, "skill": "Surudoi Tsume", "translation": "Sharp Claws", "description": "Attacks with its claws." }
+  ],
+  "priorEvolutions": [
+    { "id": 36, "digimon": "Koromon", "condition": "", "image": "https://digi-api.com/images/digimon/w/Koromon.png", "url": "https://digi-api.com/api/v1/digimon/36" }
+  ],
+  "nextEvolutions": [
+    { "id": 34, "digimon": "Greymon", "condition": "with or without Gabumon", "image": "https://digi-api.com/images/digimon/w/Greymon.png", "url": "https://digi-api.com/api/v1/digimon/34" },
+    { "id": 634, "digimon": "Agumon (X-Antibody)", "condition": "with or without the X-Antibody", "image": "https://digi-api.com/images/digimon/w/Agumon_(X-Antibody).png", "url": "https://digi-api.com/api/v1/digimon/634" }
+  ]
+}

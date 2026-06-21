@@ -1,0 +1,28 @@
+<div class="app-shell">
+  <header class="app-shell__topbar">
+    <span class="app-shell__logo" aria-hidden="true">◈</span>
+    <h1 class="app-shell__brand">{{ brand() }}</h1>
+  </header>
+
+  <main class="app-shell__content">
+    <section class="welcome" aria-labelledby="welcome-title">
+      <p class="welcome__kicker">// SYSTEM ONLINE</p>
+      <h2 id="welcome-title" class="welcome__title">Initializing the DigiVerse…</h2>
+      <p class="welcome__text">
+        Mobile-first Digimon DigiDex &amp; Browsergame. Project scaffold ready — features are coming
+        online step by step.
+      </p>
+    </section>
+
+    <router-outlet />
+  </main>
+
+  <footer class="app-shell__footer">
+    <p>
+      This is a fan-made project using public
+      <a href="https://digi-api.com/" target="_blank" rel="noopener noreferrer">DAPI</a> data. Digimon
+      and related media are trademarks of Bandai. This project is not affiliated with or endorsed by
+      Bandai.
+    </p>
+  </footer>
+</div>

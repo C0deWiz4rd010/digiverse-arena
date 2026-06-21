@@ -1,0 +1,24 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Agumon",
+      "href": "https://digi-api.com/api/v1/digimon/1",
+      "image": "https://digi-api.com/images/digimon/w/Agumon.png"
+    },
+    {
+      "id": 2,
+      "name": "Airdramon",
+      "href": "https://digi-api.com/api/v1/digimon/2",
+      "image": "https://digi-api.com/images/digimon/w/Airdramon.png"
+    }
+  ],
+  "pageable": {
+    "currentPage": 0,
+    "elementsOnPage": 2,
+    "totalElements": 1488,
+    "totalPages": 743,
+    "previousPage": "",
+    "nextPage": "https://digi-api.com/api/v1/digimon?pageSize=2&page=1"
+  }
+}
