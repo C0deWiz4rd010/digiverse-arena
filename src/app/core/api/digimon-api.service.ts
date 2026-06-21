@@ -47,4 +47,12 @@ export class DigimonApiService {
       .get<unknown>(url)
       .pipe(map((raw) => normalizeMetaList(metaListResponseSchema.parse(raw))));
   }
+
+  /** Returns the total number of entries for a metadata resource (via `pageable.totalElements`). */
+  getMetaCount(resource: MetaResource): Observable<number> {
+    const url = `${API_CONFIG.baseUrl}/${resource}?pageSize=1`;
+    return this.http
+      .get<unknown>(url)
+      .pipe(map((raw) => metaListResponseSchema.parse(raw).pageable.totalElements));
+  }
 }

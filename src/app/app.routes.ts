@@ -6,7 +6,11 @@ const placeholder = (title: string) => ({
 });
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', ...placeholder('Home') },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+  },
   { path: 'dex', ...placeholder('DigiDex') },
   { path: 'dex/:id', ...placeholder('Digimon Detail') },
   { path: 'evolution-lab', ...placeholder('Evolution Lab') },

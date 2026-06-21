@@ -1,0 +1,89 @@
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__grid" aria-hidden="true"></div>
+  <div class="hero__core" aria-hidden="true"></div>
+  <p class="hero__kicker">// DIGIVERSE ARENA</p>
+  <h2 id="hero-title" class="hero__title">Scan. Evolve. Battle.</h2>
+  <p class="hero__subtitle">
+    A mobile-first DigiDex &amp; browsergame powered by the DAPI. Explore every Digimon, build teams
+    and clash in the arena.
+  </p>
+
+  <form class="hero__search" role="search" (submit)="onSearch($event)">
+    <input
+      class="hero__search-input"
+      type="search"
+      name="q"
+      placeholder="Search Digimon…"
+      aria-label="Search Digimon"
+      [value]="query()"
+      (input)="query.set($any($event.target).value)"
+    />
+    <digi-button type="submit" size="md" ariaLabel="Search">Search</digi-button>
+  </form>
+</section>
+
+<section class="quick" aria-label="Quick actions">
+  @for (action of quickActions; track action.label) {
+    <button class="quick__btn" type="button" (click)="action.action()">
+      <span class="quick__icon" aria-hidden="true">{{ action.icon }}</span>
+      <span class="quick__label">{{ action.label }}</span>
+    </button>
+  }
+</section>
+
+@if (error()) {
+  <digi-error-state
+    title="The DigiVerse is unreachable"
+    message="Could not reach the DAPI. Check your connection and try again."
+    (retry)="load()"
+  />
+} @else {
+  <div class="panels">
+    <digi-card class="daily" [interactive]="!loading()" (click)="openDaily()">
+      <p class="panel__label">Daily Digimon</p>
+      @if (loading()) {
+        <digi-skeleton width="96px" height="96px" radius="var(--radius-md)" />
+        <digi-skeleton width="60%" height="1rem" />
+      } @else if (daily(); as d) {
+        <img
+          class="daily__img"
+          [src]="d.image"
+          [alt]="d.name"
+          loading="lazy"
+          width="96"
+          height="96"
+        />
+        <p class="daily__name">{{ d.name }}</p>
+        <p class="daily__hint">Tap to open profile →</p>
+      }
+    </digi-card>
+
+    <digi-card class="skill">
+      <p class="panel__label">Daily Skill</p>
+      @if (loading()) {
+        <digi-skeleton width="70%" height="1.4rem" />
+      } @else {
+        <p class="skill__name">{{ dailySkill() ?? '—' }}</p>
+        <button class="skill__link" type="button" (click)="go('/skills')">
+          Open Skill Library →
+        </button>
+      }
+    </digi-card>
+  </div>
+
+  <section class="stats" aria-label="DigiVerse statistics">
+    @for (tile of stats(); track tile.label) {
+      <div class="stats__tile">
+        <span class="stats__value">{{ tile.value }}</span>
+        <span class="stats__label">{{ tile.label }}</span>
+      </div>
+    } @empty {
+      @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+        <div class="stats__tile">
+          <digi-skeleton width="50%" height="1.6rem" />
+          <digi-skeleton width="70%" height="0.8rem" />
+        </div>
+      }
+    }
+  </section>
+}

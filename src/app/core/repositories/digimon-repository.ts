@@ -20,6 +20,7 @@ export class DigimonRepository {
   private readonly inflightDetail = new Map<number, Promise<Digimon>>();
   private readonly inflightList = new Map<string, Promise<Page<DigimonListItem>>>();
   private readonly inflightMeta = new Map<string, Promise<MetaEntry[]>>();
+  private readonly metaCounts = new Map<string, Promise<number>>();
 
   /** Fetch a Digimon detail. Order: fresh IndexedDB cache → network (then cache). */
   async getDigimon(id: number, options: { force?: boolean } = {}): Promise<Digimon> {
@@ -83,5 +84,19 @@ export class DigimonRepository {
   /** Clears all cached DAPI data (used by Settings → Reset Cache). */
   async clearCache(): Promise<void> {
     await Promise.all([digiDb.digimon.clear(), digiDb.meta.clear()]);
+  }
+
+  /** Total number of Digimon (via the list endpoint's `totalElements`). Memoized. */
+  getDigimonCount(): Promise<number> {
+    return this.getDigimonList({ pageSize: 1 }).then((p) => p.totalElements);
+  }
+
+  /** Total number of entries for a metadata resource. Memoized in memory. */
+  getMetaCount(resource: MetaResource): Promise<number> {
+    const existing = this.metaCounts.get(resource);
+    if (existing) return existing;
+    const request = firstValueFrom(this.api.getMetaCount(resource));
+    this.metaCounts.set(resource, request);
+    return request;
   }
 }
