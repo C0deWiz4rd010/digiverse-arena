@@ -35,9 +35,10 @@ test.describe('DigiVerse Arena smoke', () => {
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/tournaments');
-    await expect(page.getByRole('heading', { name: 'Bracket runs with themed AI seeds' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Grand Circuit Tournament Mode' })).toBeVisible();
     await page.getByRole('button', { name: 'Run bracket' }).first().click();
     await expect(page.locator('text=Champion:')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Story Feed' })).toBeVisible();
 
     expect(pageErrors).toEqual([]);
     expect(consoleErrors.filter((entry) => !entry.includes('favicon'))).toEqual([]);

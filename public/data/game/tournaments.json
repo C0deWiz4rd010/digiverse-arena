@@ -4,30 +4,62 @@
     {
       "id": "rookie-cup",
       "name": "Rookie Cup",
+      "tagline": "Small bracket, huge first victory energy.",
+      "format": "single-elimination",
       "size": 4,
       "teamSize": 1,
+      "difficulty": 1,
       "reward": "Rookie Crest Badge"
     },
     {
       "id": "virus-cup",
       "name": "Virus Cup",
+      "tagline": "Aggro bracket where counters and guts matter.",
+      "format": "survival",
       "size": 8,
       "teamSize": 2,
+      "difficulty": 3,
       "reward": "Redline Counter Chip"
     },
     {
       "id": "field-masters",
       "name": "Field Masters",
+      "tagline": "A full-field strategy festival for cohesive teams.",
+      "format": "single-elimination",
       "size": 8,
       "teamSize": 3,
+      "difficulty": 3,
       "reward": "Biome Master Key"
     },
     {
       "id": "x-antibody-invitational",
       "name": "X-Antibody Invitational",
+      "tagline": "High-tier invite-only spectacle with brutal finals.",
+      "format": "boss-rush",
       "size": 4,
       "teamSize": 3,
+      "difficulty": 5,
       "reward": "X-Core Invite Seal"
+    },
+    {
+      "id": "legendary-clash",
+      "name": "Legendary Clash",
+      "tagline": "A prestige bracket with cinematic underdog potential.",
+      "format": "single-elimination",
+      "size": 8,
+      "teamSize": 3,
+      "difficulty": 4,
+      "reward": "Legend Circuit Crown"
+    },
+    {
+      "id": "random-chaos-league",
+      "name": "Random Chaos League",
+      "tagline": "Sixteen seeds, rapid chaos, absurd bracket stories.",
+      "format": "gauntlet",
+      "size": 16,
+      "teamSize": 1,
+      "difficulty": 2,
+      "reward": "Chaos League Banner"
     }
   ]
 }

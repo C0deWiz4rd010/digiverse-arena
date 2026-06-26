@@ -78,6 +78,8 @@ describe('tournaments and mastery', () => {
       {
         id: 'spec-cup',
         name: 'Spec Cup',
+        tagline: 'Spec drama.',
+        format: 'single-elimination',
         size: 4,
         teamSize: 1,
         field: null,
@@ -85,6 +87,9 @@ describe('tournaments and mastery', () => {
         description: '',
         rule: '',
         reward: '',
+        difficulty: 2,
+        modifiers: ['Spec modifier'],
+        sponsor: 'Spec League',
       },
       [agumon],
       [gabumon, devimon, greymon],
@@ -92,6 +97,9 @@ describe('tournaments and mastery', () => {
     expect(run.status).toBe('complete');
     expect(run.championName).toBeTruthy();
     expect(run.matches.length).toBe(3);
+    expect(run.hypeScore).toBeGreaterThan(0);
+    expect(run.storyBeats.length).toBeGreaterThanOrEqual(2);
+    expect(run.rewardSummary).toContain('bits');
   });
 
   it('unlocks DigiCore badges at thresholds', () => {

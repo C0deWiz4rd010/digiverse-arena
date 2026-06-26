@@ -21,6 +21,7 @@ import {
   type BattleEvent,
   type BattleResult,
   type TournamentDefinition,
+  type TournamentMatch,
   type TournamentRun,
 } from '../../game';
 
@@ -735,36 +736,129 @@ export class RandomBattlePage {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
-      <header class="page-head">
+      <header class="page-head tournament-hero">
         <p class="eyebrow">// Tournaments</p>
-        <h2>Bracket runs with themed AI seeds</h2>
-        <p class="lead">Run local brackets, watch deterministic finals and save champion history.</p>
+        <h2>Grand Circuit Tournament Mode</h2>
+        <p class="lead">Pick a themed event, scout the modifiers, launch the bracket and watch the DigiCore turn every upset, final and reward into a real tournament story.</p>
+        <div class="metric-grid">
+          <div class="metric"><span class="metric__label">Events</span><strong class="metric__value">{{ tournaments.length }}</strong></div>
+          <div class="metric"><span class="metric__label">Formats</span><strong class="metric__value">4</strong></div>
+          <div class="metric"><span class="metric__label">Max Seeds</span><strong class="metric__value">16</strong></div>
+        </div>
       </header>
-      <div class="grid">
+
+      <div class="grid grid--wide">
         @for (tournament of tournaments; track tournament.id) {
-          <article class="bracket-card">
-            <p class="eyebrow">{{ tournament.rule }}</p>
+          <article class="bracket-card tournament-card">
+            <p class="eyebrow">{{ tournament.sponsor }} // {{ tournament.format }}</p>
             <h3>{{ tournament.name }}</h3>
+            <p class="lead">{{ tournament.tagline }}</p>
             <p class="muted">{{ tournament.description }}</p>
-            <div class="chip-row"><span class="chip">{{ tournament.size }} seeds</span><span class="chip">{{ tournament.teamSize }} per team</span><span class="chip chip--hot">{{ tournament.reward }}</span></div>
-            <button class="btn btn--primary" type="button" (click)="run(tournament)">Run bracket</button>
+            <div class="difficulty" [attr.aria-label]="'Difficulty ' + tournament.difficulty + ' of 5'">
+              @for (pip of difficultyPips(tournament); track $index) {
+                <span class="difficulty__pip" [class.difficulty__pip--on]="pip"></span>
+              }
+            </div>
+            <div class="chip-row">
+              <span class="chip">{{ tournament.size }} seeds</span>
+              <span class="chip">{{ tournament.teamSize }} per team</span>
+              <span class="chip">{{ tournament.field || 'Neutral Field' }}</span>
+              <span class="chip chip--hot">{{ tournament.reward }}</span>
+            </div>
+            <div class="chip-row">
+              @for (modifier of tournament.modifiers; track modifier) {
+                <span class="chip">{{ modifier }}</span>
+              }
+            </div>
+            <p class="muted">{{ tournament.rule }}</p>
+            <button class="btn btn--primary" type="button" [disabled]="running()" (click)="run(tournament)">Run bracket</button>
           </article>
         }
       </div>
+
+      @if (running()) {
+        <div class="empty">Charging tournament gates...</div>
+      }
+
       @if (current(); as run) {
-        <article class="panel">
-          <p class="eyebrow">Champion: {{ run.championName }}</p>
-          <h3>{{ run.definition.name }}</h3>
-          <p class="lead">{{ summary(run) }}</p>
-          <div class="grid">
-            @for (match of run.matches; track match.id) {
-              <div class="metric">
-                <span class="metric__label">Round {{ match.round }}</span>
-                <strong class="metric__value">{{ match.playerName }} vs {{ match.enemyName }}</strong>
-                <p class="muted">Winner: {{ match.winnerName }}</p>
+        <article id="tournament-results" class="panel tournament-showcase" tabindex="-1">
+          <div>
+            <p class="eyebrow">Champion: {{ run.championName }}</p>
+            <h3>{{ run.definition.name }}</h3>
+            <p class="lead">{{ summary(run) }}</p>
+          </div>
+          <div class="metric-grid">
+            <div class="metric"><span class="metric__label">Hype</span><strong class="metric__value">{{ run.hypeScore }}</strong></div>
+            <div class="metric"><span class="metric__label">Upsets</span><strong class="metric__value">{{ run.upsetCount }}</strong></div>
+            <div class="metric"><span class="metric__label">Your Run</span><strong class="metric__value">{{ run.playerPlacement }}</strong></div>
+            <div class="metric"><span class="metric__label">Reward</span><strong class="metric__value">{{ run.rewardSummary }}</strong></div>
+          </div>
+        </article>
+
+        <div class="split">
+          <article class="panel">
+            <h3>Story Feed</h3>
+            <div class="story-feed">
+              @for (beat of run.storyBeats; track beat.title) {
+                <div class="story-beat">
+                  <span class="story-beat__round">R{{ beat.round }}</span>
+                  <div>
+                    <strong>{{ beat.title }}</strong>
+                    <p class="muted">{{ beat.detail }}</p>
+                    <div class="bar"><div class="bar__head"><span>Intensity</span><strong>{{ beat.intensity }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="beat.intensity"></div></div></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </article>
+
+          <article class="panel final-theater">
+            <p class="eyebrow">Final Theater</p>
+            <h3>Final Theater</h3>
+            @if (finalMatch(run); as final) {
+              <p class="lead">{{ final.headline }}</p>
+              <div class="match-card__teams">
+                <span>{{ final.playerName }}</span>
+                <strong>vs</strong>
+                <span>{{ final.enemyName }}</span>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><span class="metric__label">Winner</span><strong class="metric__value">{{ final.winnerName }}</strong></div>
+                <div class="metric"><span class="metric__label">Hype</span><strong class="metric__value">{{ final.hype }}</strong></div>
+                <div class="metric"><span class="metric__label">Reward Bits</span><strong class="metric__value">{{ final.rewardBits }}</strong></div>
               </div>
             }
-          </div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <h3>Bracket Board</h3>
+          @for (round of roundNumbers(run); track round) {
+            <p class="eyebrow">Round {{ round }}</p>
+            <div class="grid">
+              @for (match of roundMatches(run, round); track match.id) {
+                <div class="match-card" [class.match-card--upset]="match.upset">
+                  <div class="match-card__top">
+                    <span class="chip">Hype {{ match.hype }}</span>
+                    @if (match.upset) { <span class="chip chip--hot">Upset</span> }
+                    <span class="chip">{{ match.rewardBits }} bits</span>
+                  </div>
+                  <strong>{{ match.headline }}</strong>
+                  <div class="match-card__teams">
+                    <span>{{ match.playerName }}</span>
+                    <strong>vs</strong>
+                    <span>{{ match.enemyName }}</span>
+                  </div>
+                  <div class="power-line">
+                    <span>{{ match.leftPower }}</span>
+                    <div class="bar__track"><div class="bar__fill" [style.width.%]="powerSplit(match)"></div></div>
+                    <span>{{ match.rightPower }}</span>
+                  </div>
+                  <p class="muted">Winner: {{ match.winnerName }} · Margin {{ match.margin }}</p>
+                </div>
+              }
+            </div>
+          }
         </article>
       }
     </section>
@@ -775,25 +869,59 @@ export class TournamentsPage {
   private readonly progress = inject(GameProgressRepository);
   protected readonly tournaments = TOURNAMENTS;
   protected readonly current = signal<TournamentRun | null>(null);
+  protected readonly running = signal(false);
 
   protected summary(run: TournamentRun): string {
     return tournamentSummary(run);
   }
 
+  protected difficultyPips(tournament: TournamentDefinition): boolean[] {
+    return Array.from({ length: 5 }, (_, index) => index < tournament.difficulty);
+  }
+
+  protected finalMatch(run: TournamentRun): TournamentMatch | null {
+    return run.matches[run.matches.length - 1] ?? null;
+  }
+
+  protected roundNumbers(run: TournamentRun): number[] {
+    return [...new Set(run.matches.map((match) => match.round))];
+  }
+
+  protected roundMatches(run: TournamentRun, round: number): TournamentMatch[] {
+    return run.matches.filter((match) => match.round === round);
+  }
+
+  protected powerSplit(match: TournamentMatch): number {
+    const total = Math.max(1, match.leftPower + match.rightPower);
+    return Math.round((match.leftPower / total) * 100);
+  }
+
   protected async run(tournament: TournamentDefinition): Promise<void> {
-    const [player, opponents] = await Promise.all([
-      loadMany(this.repo, DEFAULT_TEAM.slice(0, tournament.teamSize)),
-      loadMany(this.repo, tournament.seedIds),
-    ]);
-    const run = runTournament(tournament, player, opponents);
-    this.current.set(run);
-    await this.progress.saveTournament({
-      tournamentId: tournament.id,
-      name: tournament.name,
-      status: run.status,
-      championName: run.championName,
-      run,
-    });
+    this.running.set(true);
+    try {
+      const [player, opponents] = await Promise.all([
+        loadMany(this.repo, DEFAULT_TEAM.slice(0, tournament.teamSize)),
+        loadMany(this.repo, tournament.seedIds),
+      ]);
+      const run = runTournament(tournament, player, opponents);
+      this.current.set(run);
+      setTimeout(() => {
+        const reduceMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        globalThis.document?.getElementById('tournament-results')?.scrollIntoView({
+          behavior: reduceMotion ? 'auto' : 'smooth',
+          block: 'start',
+        });
+      });
+      await this.progress.saveTournament({
+        tournamentId: tournament.id,
+        name: tournament.name,
+        status: run.status,
+        championName: run.championName,
+        run,
+      });
+    } finally {
+      this.running.set(false);
+    }
   }
 }
 
