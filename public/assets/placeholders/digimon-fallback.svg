@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 180" role="img" aria-label="Digimon image placeholder">
+  <rect width="220" height="180" rx="12" fill="#08111f"/>
+  <circle cx="110" cy="72" r="38" fill="#00e5ff" opacity=".24"/>
+  <path d="M70 124h80l-16 22H86z" fill="#ffb703" opacity=".55"/>
+  <path d="M88 73h44M94 91h32" stroke="#f4f8ff" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+  <text x="110" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#f4f8ff">No Image</text>
+</svg>

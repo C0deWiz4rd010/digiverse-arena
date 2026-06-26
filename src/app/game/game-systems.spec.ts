@@ -1,0 +1,137 @@
+import { describe, expect, it } from 'vitest';
+import type { Digimon } from '../core/models/digimon';
+import {
+  applyMasteryEvent,
+  attributeMultiplier,
+  defaultDigiCoreProfile,
+  deriveStats,
+  levelTier,
+  runTournament,
+  scoreTeam,
+  simulateBattle,
+  statTotal,
+} from '.';
+
+const agumon = makeDigimon(1, 'Agumon', 'Child', 'Vaccine', 'Dragon Roar', [
+  'Baby Flame',
+  'Claw Attack',
+]);
+const gabumon = makeDigimon(2, 'Gabumon', 'Child', 'Data', 'Nature Spirits', [
+  'Petit Fire',
+  'Horn Strike',
+]);
+const devimon = makeDigimon(3, 'Devimon', 'Adult', 'Virus', 'Nightmare Soldiers', [
+  'Death Claw',
+  'Dark Wing',
+]);
+const greymon = makeDigimon(4, 'Greymon', 'Adult', 'Vaccine', 'Dragon Roar', [
+  'Mega Flame',
+  'Great Horn',
+]);
+
+describe('battle stat derivation', () => {
+  it('maps Japanese and English level names to stable tiers', () => {
+    expect(levelTier(agumon)).toBe(2);
+    expect(levelTier(devimon)).toBe(3);
+    expect(levelTier(makeDigimon(9, 'Mystery', 'Rookie', 'Free', 'Unknown', []))).toBe(2);
+  });
+
+  it('derives deterministic stats from the same Digimon input', () => {
+    expect(deriveStats(agumon)).toEqual(deriveStats(agumon));
+    expect(statTotal(deriveStats(greymon))).toBeGreaterThan(statTotal(deriveStats(agumon)));
+  });
+
+  it('applies the core attribute triangle', () => {
+    expect(attributeMultiplier('Vaccine', 'Virus')).toBe(1.25);
+    expect(attributeMultiplier('Virus', 'Data')).toBe(1.25);
+    expect(attributeMultiplier('Data', 'Vaccine')).toBe(1.25);
+    expect(attributeMultiplier('Virus', 'Vaccine')).toBe(0.8);
+  });
+});
+
+describe('team and battle systems', () => {
+  it('scores stronger and more cohesive teams above empty teams', () => {
+    expect(scoreTeam([]).total).toBe(0);
+    expect(scoreTeam([agumon, gabumon, greymon]).total).toBeGreaterThan(50);
+  });
+
+  it('terminates a deterministic battle with a replayable event log', () => {
+    const first = simulateBattle([agumon, gabumon], [devimon, greymon], {
+      mode: 'spec',
+      arenaField: 'Dragon Roar',
+      seed: 123,
+    });
+    const second = simulateBattle([agumon, gabumon], [devimon, greymon], {
+      mode: 'spec',
+      arenaField: 'Dragon Roar',
+      seed: 123,
+    });
+    expect(first.winner).toBe(second.winner);
+    expect(first.events.at(-1)?.type).toBe('battle-end');
+    expect(first.turns).toBeLessThanOrEqual(72);
+  });
+});
+
+describe('tournaments and mastery', () => {
+  it('runs a complete tournament and records a champion', () => {
+    const run = runTournament(
+      {
+        id: 'spec-cup',
+        name: 'Spec Cup',
+        size: 4,
+        teamSize: 1,
+        field: null,
+        seedIds: [1, 2, 3, 4],
+        description: '',
+        rule: '',
+        reward: '',
+      },
+      [agumon],
+      [gabumon, devimon, greymon],
+    );
+    expect(run.status).toBe('complete');
+    expect(run.championName).toBeTruthy();
+    expect(run.matches.length).toBe(3);
+  });
+
+  it('unlocks DigiCore badges at thresholds', () => {
+    const profile = applyMasteryEvent(defaultDigiCoreProfile(), {
+      track: 'arena',
+      amount: 60,
+      reason: 'spec',
+    });
+    expect(profile.unlocks).toContain('arena-badge');
+    expect(profile.badges).toContain('Arena crest badge');
+  });
+});
+
+function makeDigimon(
+  id: number,
+  name: string,
+  level: string,
+  attribute: string,
+  field: string,
+  skills: string[],
+): Digimon {
+  return {
+    id,
+    name,
+    xAntibody: false,
+    image: `https://example.test/${name}.png`,
+    images: [{ href: `https://example.test/${name}.png`, transparent: true }],
+    levels: [{ id: 1, name: level }],
+    types: [{ id: 1, name: 'Reptile' }],
+    attributes: [{ id: 1, name: attribute }],
+    fields: [{ id: 1, name: field, image: null }],
+    releaseDate: null,
+    descriptions: [{ origin: 'spec', language: 'en_us', text: `${name} profile.` }],
+    skills: skills.map((skill, index) => ({
+      id: id * 100 + index,
+      name: skill,
+      translation: '',
+      description: `${skill} test description.`,
+    })),
+    priorEvolutions: [],
+    nextEvolutions: [],
+  };
+}

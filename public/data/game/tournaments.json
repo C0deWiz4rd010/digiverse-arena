@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "tournaments": [
+    {
+      "id": "rookie-cup",
+      "name": "Rookie Cup",
+      "size": 4,
+      "teamSize": 1,
+      "reward": "Rookie Crest Badge"
+    },
+    {
+      "id": "virus-cup",
+      "name": "Virus Cup",
+      "size": 8,
+      "teamSize": 2,
+      "reward": "Redline Counter Chip"
+    },
+    {
+      "id": "field-masters",
+      "name": "Field Masters",
+      "size": 8,
+      "teamSize": 3,
+      "reward": "Biome Master Key"
+    },
+    {
+      "id": "x-antibody-invitational",
+      "name": "X-Antibody Invitational",
+      "size": 4,
+      "teamSize": 3,
+      "reward": "X-Core Invite Seal"
+    }
+  ]
+}

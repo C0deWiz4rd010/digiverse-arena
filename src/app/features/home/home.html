@@ -47,11 +47,12 @@
       } @else if (daily(); as d) {
         <img
           class="daily__img"
-          [src]="d.image"
+          [src]="d.image || fallbackImage"
           [alt]="d.name"
           loading="lazy"
           width="96"
           height="96"
+          (error)="onImageError($event)"
         />
         <p class="daily__name">{{ d.name }}</p>
         <p class="daily__hint">Tap to open profile →</p>

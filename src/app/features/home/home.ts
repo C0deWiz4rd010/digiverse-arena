@@ -19,6 +19,8 @@ interface StatTile {
   value: number | null;
 }
 
+const FALLBACK_IMAGE = '/assets/placeholders/digimon-fallback.svg';
+
 /** Home / Dashboard — the cyber entry point with search, quick actions, daily pick and stats. */
 @Component({
   selector: 'app-home',
@@ -38,6 +40,7 @@ export class Home {
   protected readonly daily = signal<DigimonListItem | null>(null);
   protected readonly dailySkill = signal<string | null>(null);
   protected readonly stats = signal<StatTile[]>([]);
+  protected readonly fallbackImage = FALLBACK_IMAGE;
 
   protected readonly quickActions: QuickAction[] = [
     { label: 'Open DigiDex', icon: '▦', action: () => this.go('/dex') },
@@ -64,6 +67,11 @@ export class Home {
   protected openDaily(): void {
     const d = this.daily();
     if (d) void this.router.navigate(['/dex', d.id]);
+  }
+
+  protected onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.src !== FALLBACK_IMAGE) img.src = FALLBACK_IMAGE;
   }
 
   protected async randomDigimon(): Promise<void> {

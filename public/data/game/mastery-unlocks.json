@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "tracks": ["scan", "field", "skill", "tactics", "arena", "evolution"],
+  "unlocks": [
+    { "id": "scan-scout", "track": "scan", "threshold": 20, "label": "Scouter hints" },
+    { "id": "field-cartographer", "track": "field", "threshold": 35, "label": "Field route notes" },
+    { "id": "skill-analyst", "track": "skill", "threshold": 35, "label": "Skill tag insights" },
+    { "id": "tactics-spark", "track": "tactics", "threshold": 45, "label": "Team suggestion presets" },
+    { "id": "arena-badge", "track": "arena", "threshold": 60, "label": "Arena crest badge" },
+    { "id": "evolution-echo", "track": "evolution", "threshold": 60, "label": "Evolution echo frame" }
+  ]
+}

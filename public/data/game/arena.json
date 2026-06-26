@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "modes": [
+    {
+      "id": "solo-duel",
+      "name": "Solo Duel",
+      "field": null,
+      "teamSize": 1,
+      "reward": 12,
+      "description": "A clean one-on-one command battle for fast testing and daily warmups."
+    },
+    {
+      "id": "team-clash",
+      "name": "Team Clash",
+      "field": null,
+      "teamSize": 3,
+      "reward": 24,
+      "description": "Three-member team fight with coverage and target priority pressure."
+    },
+    {
+      "id": "field-hazard",
+      "name": "Field Hazard",
+      "field": "Dragon Roar",
+      "teamSize": 3,
+      "reward": 32,
+      "description": "A volatile arena where Field affinity can swing damage."
+    }
+  ]
+}
