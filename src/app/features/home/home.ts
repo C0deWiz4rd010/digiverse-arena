@@ -19,7 +19,7 @@ interface StatTile {
   value: number | null;
 }
 
-const FALLBACK_IMAGE = '/assets/placeholders/digimon-fallback.svg';
+const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
 
 /** Home / Dashboard — the cyber entry point with search, quick actions, daily pick and stats. */
 @Component({

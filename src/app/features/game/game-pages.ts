@@ -24,7 +24,7 @@ import {
   type TournamentRun,
 } from '../../game';
 
-const FALLBACK_IMAGE = '/assets/placeholders/digimon-fallback.svg';
+const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
 
 const DEFAULT_TEAM = [1, 2, 3];
 
