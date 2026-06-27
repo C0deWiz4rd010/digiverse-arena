@@ -46,10 +46,15 @@ test.describe('DigiVerse Arena smoke', () => {
     await expect(page.getByRole('heading', { name: 'Grand Circuit Tournament Mode' })).toBeVisible();
     await page.getByRole('button', { name: 'Nexus Overdrive' }).click();
     await page.getByRole('button', { name: 'Run bracket' }).click();
-    await expect(page.locator('text=Champion:')).toBeVisible();
+    await expect(page.getByText('Champion: Signal hidden')).toBeVisible();
+    await page.locator('.prediction-card').first().click();
+    await expect(page.getByRole('status')).toContainText('Prediction locked');
     await expect(page.getByRole('heading', { name: 'Broadcast Moments' })).toBeVisible();
     await expect(page.getByText('Match Spotlight')).toBeVisible();
     await page.getByRole('button', { name: 'Reveal next round' }).first().click();
+    await expect(page.locator('text=Champion:')).toBeVisible();
+    await page.getByRole('button', { name: 'Claim prediction bonus' }).click();
+    await expect(page.getByRole('status')).toContainText('Prediction');
     await expect.poll(() => page.locator('.tournament-match-card').count()).toBeGreaterThanOrEqual(3);
     await page.locator('.tournament-match-card').first().click();
     await expect(page.locator('.spotlight-log p').first()).toBeVisible();

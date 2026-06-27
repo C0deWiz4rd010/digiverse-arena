@@ -172,13 +172,13 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
         <article id="tournament-results" class="tournament-broadcast" tabindex="-1">
           <div class="broadcast-stage">
             <p class="eyebrow">{{ run.definition.sponsor }} // {{ run.strategy.label }}</p>
-            <h3>Champion: {{ run.championName }}</h3>
-            <p class="lead">{{ summary(run) }}</p>
+            <h3>Champion: {{ displayChampion(run) }}</h3>
+            <p class="lead">{{ broadcastSummary(run) }}</p>
             <div class="metric-grid">
               <div class="metric"><span class="metric__label">Hype</span><strong class="metric__value">{{ run.hypeScore }}</strong></div>
               <div class="metric"><span class="metric__label">Momentum</span><strong class="metric__value">{{ run.momentum }}</strong></div>
               <div class="metric"><span class="metric__label">Crowd</span><strong class="metric__value">{{ run.crowdMood }}</strong></div>
-              <div class="metric"><span class="metric__label">Reward</span><strong class="metric__value">{{ run.totalRewardBits }} bits</strong></div>
+              <div class="metric"><span class="metric__label">Prediction</span><strong class="metric__value">{{ predictionLabel(run) }}</strong></div>
             </div>
           </div>
           <div class="contender-strip" aria-label="Tournament contenders">
@@ -207,6 +207,36 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             </button>
           }
         </section>
+
+        <article class="prediction-slip">
+          <div>
+            <p class="eyebrow">Prediction Slip</p>
+            <h3>Call the champion before the final gate</h3>
+            <p class="lead">{{ predictionCopy(run) }}</p>
+          </div>
+          <div class="prediction-grid">
+            @for (contender of predictionContenders(run); track contender.id) {
+              <button
+                class="prediction-card"
+                type="button"
+                [disabled]="revealComplete()"
+                [class.prediction-card--selected]="prediction()?.id === contender.id"
+                [class.prediction-card--hit]="prediction()?.id === contender.id && predictionResult(run) === 'hit'"
+                [class.prediction-card--miss]="prediction()?.id === contender.id && predictionResult(run) === 'miss'"
+                (click)="pickPrediction(contender)"
+              >
+                <img [src]="contender.leadImage || fallbackImage" [alt]="contender.leadName" (error)="onImageError($event)" />
+                <span>{{ contender.crest }}</span>
+                <strong>{{ contender.name }}</strong>
+              </button>
+            }
+          </div>
+          @if (predictionResult(run) !== 'open' && predictionResult(run) !== 'pending') {
+            <button class="btn btn--accent" type="button" [disabled]="predictionBonusClaimed()" (click)="claimPredictionBonus(run)">
+              {{ predictionBonusClaimed() ? 'Prediction bonus claimed' : 'Claim prediction bonus' }}
+            </button>
+          }
+        </article>
 
         <div class="split tournament-theater">
           <article class="panel moment-panel">
@@ -353,6 +383,8 @@ export class TournamentsPage {
   protected readonly revealedRounds = signal(0);
   protected readonly spotlightMatchId = signal<string | null>(null);
   protected readonly claimedReward = signal<TournamentRewardOption | null>(null);
+  protected readonly prediction = signal<TournamentRun['contenders'][number] | null>(null);
+  protected readonly predictionBonusClaimed = signal(false);
   protected readonly toast = signal('');
 
   protected onImageError(event: Event): void {
@@ -373,6 +405,16 @@ export class TournamentsPage {
     return tournamentSummary(run);
   }
 
+  protected displayChampion(run: TournamentRun): string {
+    return this.revealComplete() ? (run.championName ?? 'Unknown') : 'Signal hidden';
+  }
+
+  protected broadcastSummary(run: TournamentRun): string {
+    if (this.revealComplete()) return this.summary(run);
+    const phase = run.phases.find((item) => item.round === this.revealedRounds());
+    return `${phase?.summary ?? 'Opening signal is live.'} Final result is hidden until the last reveal.`;
+  }
+
   protected difficultyPips(tournament: TournamentDefinition): boolean[] {
     return Array.from({ length: 5 }, (_, index) => index < tournament.difficulty);
   }
@@ -383,6 +425,13 @@ export class TournamentsPage {
 
   protected contenderSpotlight(run: TournamentRun): TournamentRun['contenders'] {
     return run.contenders.slice(0, 6);
+  }
+
+  protected predictionContenders(run: TournamentRun): TournamentRun['contenders'] {
+    const contenders = [run.contenders.find((contender) => contender.player), ...run.contenders.filter((contender) => !contender.player)]
+      .filter((contender): contender is TournamentRun['contenders'][number] => Boolean(contender))
+      .slice(0, 4);
+    return contenders;
   }
 
   protected roundNumbers(run: TournamentRun): number[] {
@@ -405,6 +454,28 @@ export class TournamentsPage {
   protected revealComplete(): boolean {
     const run = this.current();
     return !run || this.revealedRounds() >= run.phases.length;
+  }
+
+  protected predictionLabel(run: TournamentRun): string {
+    const result = this.predictionResult(run);
+    if (result === 'hit') return 'hit';
+    if (result === 'miss') return 'miss';
+    return this.prediction()?.leadName ?? 'open';
+  }
+
+  protected predictionCopy(run: TournamentRun): string {
+    const result = this.predictionResult(run);
+    if (result === 'hit') return `${this.prediction()?.name} called it. Claim the mastery bonus.`;
+    if (result === 'miss') return `${this.prediction()?.name} fell short. Consolation analysis is still available.`;
+    if (result === 'pending') return `${this.prediction()?.name} locked. Reveal the final gate to resolve it.`;
+    return `Pick from the visible power targets before the final gate. Correct calls pay extra tactics mastery.`;
+  }
+
+  protected predictionResult(run: TournamentRun): 'open' | 'pending' | 'hit' | 'miss' {
+    const pick = this.prediction();
+    if (!pick) return 'open';
+    if (!this.revealComplete()) return 'pending';
+    return pick.name === run.championName ? 'hit' : 'miss';
   }
 
   protected revealNext(): void {
@@ -445,6 +516,13 @@ export class TournamentsPage {
     this.toast.set(`Spotlight: ${match.headline}`);
   }
 
+  protected pickPrediction(contender: TournamentRun['contenders'][number]): void {
+    if (this.revealComplete()) return;
+    this.prediction.set(contender);
+    this.predictionBonusClaimed.set(false);
+    this.toast.set(`Prediction locked: ${contender.name}.`);
+  }
+
   protected spotlightMatch(run: TournamentRun): TournamentMatch | null {
     return run.matches.find((match) => match.id === this.spotlightMatchId()) ?? this.finalMatch(run);
   }
@@ -463,10 +541,25 @@ export class TournamentsPage {
     this.toast.set(`${reward.title} claimed.`);
   }
 
+  protected async claimPredictionBonus(run: TournamentRun): Promise<void> {
+    if (this.predictionBonusClaimed()) return;
+    const result = this.predictionResult(run);
+    const amount = result === 'hit' ? 14 : 5;
+    await this.progress.applyMastery({
+      track: result === 'hit' ? 'tactics' : 'scan',
+      amount,
+      reason: `Tournament prediction ${result}`,
+    });
+    this.predictionBonusClaimed.set(true);
+    this.toast.set(result === 'hit' ? `Prediction hit: +${amount} tactics mastery.` : `Prediction miss: +${amount} scan mastery.`);
+  }
+
   protected async run(): Promise<void> {
     const tournament = this.selectedTournament();
     this.running.set(true);
     this.claimedReward.set(null);
+    this.prediction.set(null);
+    this.predictionBonusClaimed.set(false);
     try {
       const [player, opponents] = await Promise.all([
         loadMany(this.repo, DEFAULT_TEAM.slice(0, tournament.teamSize)),
