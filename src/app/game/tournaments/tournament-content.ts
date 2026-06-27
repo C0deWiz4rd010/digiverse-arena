@@ -1,5 +1,6 @@
 import type { Digimon } from '../../core/models/digimon';
 import { battleSummary, simulateBattle, type BattleResult } from '../battle-engine/battle-engine';
+import { analyzeDigiLink, combatTuningFromProfile } from '../nexus/digilink-nexus';
 import { deriveStats, statTotal } from '../stats/battle-stats';
 
 export interface TournamentDefinition {
@@ -192,6 +193,8 @@ export function runTournament(definition: TournamentDefinition, playerTeam: Digi
         mode: definition.id,
         arenaField: definition.field,
         seed: definition.seedIds[0] + round * 101 + i,
+        playerNexus: combatTuningFromProfile(analyzeDigiLink(left.team)),
+        enemyNexus: combatTuningFromProfile(analyzeDigiLink(right.team)),
       });
       const leftWins = result.winner === 'player' || (result.winner === 'draw' && left.power >= right.power);
       const winner = leftWins ? left : right;

@@ -7,6 +7,10 @@ export interface ArenaModeDefinition {
   reward: number;
   description: string;
   modifier: string;
+  tier: 'calm' | 'danger' | 'elite' | 'volatile';
+  hazard: string;
+  cadence: 'fast' | 'standard' | 'endurance';
+  nexusTags: string[];
 }
 
 export const ARENA_MODES: ArenaModeDefinition[] = [
@@ -19,6 +23,10 @@ export const ARENA_MODES: ArenaModeDefinition[] = [
     reward: 12,
     description: 'A clean one-on-one command battle for fast testing and daily warmups.',
     modifier: 'No field modifier.',
+    tier: 'calm',
+    hazard: 'Open signal, no terrain interference.',
+    cadence: 'fast',
+    nexusTags: ['tempo', 'starter', 'scan'],
   },
   {
     id: 'team-clash',
@@ -29,6 +37,10 @@ export const ARENA_MODES: ArenaModeDefinition[] = [
     reward: 24,
     description: 'Three-member team fight with coverage and target priority pressure.',
     modifier: 'Balanced AI focuses low-health targets.',
+    tier: 'danger',
+    hazard: 'Target locks punish weak backlines.',
+    cadence: 'standard',
+    nexusTags: ['coverage', 'focus', 'rotation'],
   },
   {
     id: 'field-hazard',
@@ -39,6 +51,10 @@ export const ARENA_MODES: ArenaModeDefinition[] = [
     reward: 32,
     description: 'A volatile arena where Field affinity can swing damage.',
     modifier: 'Matching Field grants +10% action pressure.',
+    tier: 'volatile',
+    hazard: 'Field surges amplify matching Digimon.',
+    cadence: 'standard',
+    nexusTags: ['field', 'burst', 'counter'],
   },
   {
     id: 'boss-gate',
@@ -49,6 +65,10 @@ export const ARENA_MODES: ArenaModeDefinition[] = [
     reward: 48,
     description: 'A dense PvE gate tuned around sustain, guard and finishing moves.',
     modifier: 'Enemy lineup starts with high-tier pressure.',
+    tier: 'elite',
+    hazard: 'Boss pressure tests Guardian Core.',
+    cadence: 'endurance',
+    nexusTags: ['guard', 'finisher', 'boss'],
   },
   {
     id: 'daily-trial',
@@ -59,6 +79,24 @@ export const ARENA_MODES: ArenaModeDefinition[] = [
     reward: 28,
     description: 'A rotating-feeling local challenge seeded by the calendar day.',
     modifier: 'Rewards extra DigiCore Arena mastery.',
+    tier: 'danger',
+    hazard: 'Daily pulse shifts the safest opening.',
+    cadence: 'fast',
+    nexusTags: ['daily', 'tempo', 'reward'],
+  },
+  {
+    id: 'nexus-rift',
+    name: 'Nexus Rift',
+    field: 'Deep Savers',
+    teamSize: 3,
+    opponentIds: [101, 102, 103, 104, 105, 106],
+    reward: 56,
+    description: 'A high-risk arena built around DigiLink protocols and unstable counter chains.',
+    modifier: 'Nexus grade heavily affects reward forecast and fight tempo.',
+    tier: 'volatile',
+    hazard: 'Protocol drift rewards balanced teams and punishes static links.',
+    cadence: 'endurance',
+    nexusTags: ['nexus', 'contract', 'hype'],
   },
 ];
 

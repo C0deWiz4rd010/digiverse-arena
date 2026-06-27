@@ -1,5 +1,6 @@
 import type { Digimon } from '../../core/models/digimon';
 import { mulberry32 } from '../../core/utils/seed';
+import type { NexusCombatTuning } from '../nexus/digilink-nexus';
 import {
   attributeMultiplier,
   deriveSkills,
@@ -29,12 +30,15 @@ export interface BattleOptions {
   arenaField?: string | null;
   seed?: number;
   maxTurns?: number;
+  playerNexus?: NexusCombatTuning;
+  enemyNexus?: NexusCombatTuning;
 }
 
 export type BattleWinner = 'player' | 'enemy' | 'draw';
 
 export type BattleEvent =
   | { type: 'battle-start'; mode: string; arenaField: string | null }
+  | { type: 'nexus-pulse'; team: 'player' | 'enemy'; protocol: string; focus: number }
   | { type: 'turn-start'; turn: number; actorId: string; actorName: string }
   | { type: 'skill-used'; actorId: string; targetId: string; skillId: string; skillName: string }
   | { type: 'damage'; targetId: string; amount: number; critical: boolean; remainingHp: number }
@@ -50,7 +54,11 @@ export interface BattleResult {
   events: BattleEvent[];
 }
 
-export function createCombatants(team: 'player' | 'enemy', digimon: Digimon[]): BattleCombatant[] {
+export function createCombatants(
+  team: 'player' | 'enemy',
+  digimon: Digimon[],
+  nexus?: NexusCombatTuning,
+): BattleCombatant[] {
   return digimon.map((member, index) => {
     const stats = deriveStats(member);
     return {
@@ -61,7 +69,7 @@ export function createCombatants(team: 'player' | 'enemy', digimon: Digimon[]): 
       skills: deriveSkills(member),
       hp: stats.hp,
       maxHp: stats.hp,
-      focus: 0,
+      focus: nexus?.focusStart ?? 0,
       guard: false,
       cooldowns: {},
       ko: false,
@@ -74,9 +82,25 @@ export function simulateBattle(playerTeam: Digimon[], enemyTeam: Digimon[], opti
     options.seed ??
     [...playerTeam, ...enemyTeam].reduce((sum, digimon, index) => sum + digimon.id * (index + 3), 17);
   const rng = mulberry32(seed);
-  const player = createCombatants('player', playerTeam);
-  const enemy = createCombatants('enemy', enemyTeam);
+  const player = createCombatants('player', playerTeam, options.playerNexus);
+  const enemy = createCombatants('enemy', enemyTeam, options.enemyNexus);
   const events: BattleEvent[] = [{ type: 'battle-start', mode: options.mode, arenaField: options.arenaField ?? null }];
+  if (options.playerNexus) {
+    events.push({
+      type: 'nexus-pulse',
+      team: 'player',
+      protocol: options.playerNexus.protocolName,
+      focus: options.playerNexus.focusStart,
+    });
+  }
+  if (options.enemyNexus) {
+    events.push({
+      type: 'nexus-pulse',
+      team: 'enemy',
+      protocol: options.enemyNexus.protocolName,
+      focus: options.enemyNexus.focusStart,
+    });
+  }
   const maxTurns = options.maxTurns ?? 72;
 
   let turn = 0;
@@ -123,8 +147,13 @@ export function simulateBattle(playerTeam: Digimon[], enemyTeam: Digimon[], opti
 
       const attribute = attributeMultiplier(primaryAttribute(actor.digimon), primaryAttribute(target.digimon));
       const field = fieldAffinityBonus(actor.digimon, options.arenaField ?? null);
-      const crit = rng() < Math.min(0.28, 0.06 + actor.stats.technique / 900 + actor.focus / 300);
-      const guard = target.guard ? 0.68 : 1;
+      const actorNexus = actor.team === 'player' ? options.playerNexus : options.enemyNexus;
+      const targetNexus = target.team === 'player' ? options.playerNexus : options.enemyNexus;
+      const crit =
+        rng() <
+        Math.min(0.36, 0.06 + actor.stats.technique / 900 + actor.focus / 300 + (actorNexus?.critBonus ?? 0));
+      const nexusGuard = target.hp / target.maxHp < 0.5 && rng() < (targetNexus?.guardChance ?? 0);
+      const guard = target.guard || nexusGuard ? 0.68 : 1;
       const variance = 0.88 + rng() * 0.22;
       const raw =
         (actor.stats.attack * 0.42 + actor.stats.technique * 0.24 + skill.power) *
@@ -132,7 +161,8 @@ export function simulateBattle(playerTeam: Digimon[], enemyTeam: Digimon[], opti
         field *
         guard *
         variance *
-        (crit ? 1.48 : 1);
+        (crit ? 1.48 : 1) *
+        (actorNexus?.damageModifier ?? 1);
       const mitigation = target.stats.defense * 0.27 + target.stats.spirit * 0.08;
       const amount = Math.max(1, Math.round(raw - mitigation));
       target.hp = Math.max(0, target.hp - amount);

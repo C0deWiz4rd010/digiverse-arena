@@ -7,10 +7,14 @@ import { GameProgressRepository } from '../../core/repositories/game-progress-re
 import {
   ARENA_MODES,
   TOURNAMENTS,
+  analyzeDigiLink,
+  arenaIntel,
   battleSummary,
+  combatTuningFromProfile,
   dataCompleteness,
   deriveSkills,
   deriveStats,
+  generateNexusContracts,
   rarityScore,
   runTournament,
   scoreTeam,
@@ -18,8 +22,11 @@ import {
   statTotal,
   tournamentSummary,
   type ArenaModeDefinition,
+  type ArenaIntel,
   type BattleEvent,
   type BattleResult,
+  type DigiLinkProfile,
+  type NexusContract,
   type TournamentDefinition,
   type TournamentMatch,
   type TournamentRun,
@@ -38,6 +45,8 @@ function eventText(event: BattleEvent): string {
   switch (event.type) {
     case 'battle-start':
       return `Battle start: ${event.mode}${event.arenaField ? ` in ${event.arenaField}` : ''}.`;
+    case 'nexus-pulse':
+      return `${event.team} Nexus pulse: ${event.protocol} opens with ${event.focus} focus.`;
     case 'turn-start':
       return `Turn ${event.turn}: ${event.actorName} acts.`;
     case 'skill-used':
@@ -491,6 +500,7 @@ export class SkillLibraryPage {
         <button class="btn" type="button" (click)="autoBalance()">Balance team</button>
         <button class="btn btn--accent" type="button" [disabled]="members().length === 0" (click)="save()">Save team</button>
         <a class="btn" routerLink="/arena">Open Arena</a>
+        <a class="btn" routerLink="/nexus">Open Nexus Lab</a>
       </div>
       <div class="split">
         <div class="grid">
@@ -518,6 +528,26 @@ export class SkillLibraryPage {
             <div class="bar"><div class="bar__head"><span>Skill diversity</span><strong>{{ score().skillDiversity }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="score().skillDiversity"></div></div></div>
           </div>
           @for (note of score().notes; track note) { <p class="muted">{{ note }}</p> }
+          <div class="nexus-board">
+            <p class="eyebrow">DigiLink Nexus</p>
+            <h3>{{ nexus().protocol }} · Grade {{ nexus().grade }}</h3>
+            <div class="metric-grid">
+              <div class="metric"><span class="metric__label">Nexus</span><strong class="metric__value">{{ nexus().score }}</strong></div>
+              <div class="metric"><span class="metric__label">Focus</span><strong class="metric__value">+{{ nexus().perks.focusStart }}</strong></div>
+              <div class="metric"><span class="metric__label">Reward</span><strong class="metric__value">x{{ nexus().perks.rewardMultiplier }}</strong></div>
+            </div>
+            <div class="stat-list">
+              @for (aspect of nexus().aspects; track aspect.id) {
+                <div class="bar"><div class="bar__head"><span>{{ aspect.label }}</span><strong>{{ aspect.score }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="aspect.score"></div></div></div>
+              }
+            </div>
+            @for (contract of contracts(); track contract.id) {
+              <div class="contract-mini">
+                <strong>{{ contract.title }}</strong>
+                <span>{{ contract.risk }} · {{ contract.track }}</span>
+              </div>
+            }
+          </div>
         </aside>
       </div>
     </section>
@@ -529,6 +559,8 @@ export class TeamBuilderPage {
   protected readonly fallbackImage = FALLBACK_IMAGE;
   protected readonly members = signal<Digimon[]>([]);
   protected readonly score = computed(() => scoreTeam(this.members()));
+  protected readonly nexus = computed<DigiLinkProfile>(() => analyzeDigiLink(this.members()));
+  protected readonly contracts = computed<NexusContract[]>(() => generateNexusContracts(this.nexus()));
 
   constructor() {
     void this.loadDefaults();
@@ -574,6 +606,119 @@ export class TeamBuilderPage {
 }
 
 @Component({
+  selector: 'app-nexus-lab',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
+  template: `
+    <section class="page">
+      <header class="page-head tournament-hero">
+        <p class="eyebrow">// DigiLink Nexus</p>
+        <h2>Protocol lab for team chemistry</h2>
+        <p class="lead">Attributes, Fields, Skills and stat curves converge into protocols, contracts and combat pressure.</p>
+        <div class="action-row">
+          <button class="btn btn--primary" type="button" (click)="loadPreset('balanced')">Balanced Pulse</button>
+          <button class="btn" type="button" (click)="loadPreset('field')">Field Core</button>
+          <button class="btn" type="button" (click)="loadPreset('elite')">Elite Circuit</button>
+          <a class="btn" routerLink="/arena">Test in Arena</a>
+        </div>
+      </header>
+
+      <div class="split">
+        <article class="panel nexus-intel">
+          <p class="eyebrow">Active Protocol</p>
+          <h3>{{ profile().protocol }} · Grade {{ profile().grade }}</h3>
+          <p class="lead">Nexus score {{ profile().score }} creates +{{ profile().perks.focusStart }} opening focus, {{ percent(profile().perks.critBonus) }} crit pressure and x{{ profile().perks.rewardMultiplier }} reward forecast.</p>
+          <div class="metric-grid">
+            <div class="metric"><span class="metric__label">Damage</span><strong class="metric__value">x{{ profile().perks.damageModifier }}</strong></div>
+            <div class="metric"><span class="metric__label">Guard</span><strong class="metric__value">{{ percent(profile().perks.guardChance) }}</strong></div>
+            <div class="metric"><span class="metric__label">Contracts</span><strong class="metric__value">{{ contracts().length }}</strong></div>
+          </div>
+          <div class="stat-list">
+            @for (aspect of profile().aspects; track aspect.id) {
+              <div class="bar">
+                <div class="bar__head"><span>{{ aspect.label }}</span><strong>{{ aspect.score }}</strong></div>
+                <div class="bar__track"><div class="bar__fill" [style.width.%]="aspect.score"></div></div>
+                <p class="muted">{{ aspect.detail }}</p>
+              </div>
+            }
+          </div>
+        </article>
+
+        <aside class="panel">
+          <h3>Nexus Contracts</h3>
+          <div class="story-feed">
+            @for (contract of contracts(); track contract.id) {
+              <div class="story-beat contract-card">
+                <span class="story-beat__round">{{ contract.risk }}</span>
+                <div>
+                  <strong>{{ contract.title }}</strong>
+                  <p class="muted">{{ contract.objective }}</p>
+                  <p class="muted">{{ contract.reward }}</p>
+                  <button class="btn" type="button" (click)="activate(contract)">Activate</button>
+                </div>
+              </div>
+            }
+          </div>
+          @if (message()) {
+            <div class="metric"><span class="metric__label">Nexus Log</span><strong class="metric__value">{{ message() }}</strong></div>
+          }
+        </aside>
+      </div>
+
+      <section class="grid">
+        @for (member of members(); track member.id) {
+          <article class="monster-card">
+            <div class="monster-card__image"><img [src]="member.image || fallbackImage" [alt]="member.name" (error)="onImageError($event)" /></div>
+            <h3 class="monster-card__title">{{ member.name }}</h3>
+            <div class="chip-row">
+              @for (field of member.fields; track field.id) { <span class="chip">{{ field.name }}</span> }
+              @for (attribute of member.attributes; track attribute.id) { <span class="chip chip--hot">{{ attribute.name }}</span> }
+            </div>
+          </article>
+        }
+      </section>
+    </section>
+  `,
+})
+export class NexusLabPage {
+  private readonly repo = inject(DigimonRepository);
+  private readonly progress = inject(GameProgressRepository);
+  protected readonly fallbackImage = FALLBACK_IMAGE;
+  protected readonly members = signal<Digimon[]>([]);
+  protected readonly message = signal('');
+  protected readonly profile = computed<DigiLinkProfile>(() => analyzeDigiLink(this.members()));
+  protected readonly contracts = computed<NexusContract[]>(() => generateNexusContracts(this.profile()));
+
+  constructor() {
+    void this.loadPreset('balanced');
+  }
+
+  protected onImageError(event: Event): void {
+    imageError(event);
+  }
+
+  protected percent(value: number): string {
+    return `${Math.round(value * 100)}%`;
+  }
+
+  protected async loadPreset(kind: 'balanced' | 'elite' | 'field'): Promise<void> {
+    const ids =
+      kind === 'elite'
+        ? [243, 244, 245]
+        : kind === 'field'
+          ? [1, 4, 11, 21]
+          : [1, 2, 3];
+    this.members.set((await loadMany(this.repo, ids)).slice(0, 3));
+    await this.progress.applyMastery({ track: 'tactics', amount: 4, reason: `Nexus preset ${kind}` });
+  }
+
+  protected async activate(contract: NexusContract): Promise<void> {
+    await this.progress.applyMastery({ track: contract.track, amount: 9, reason: contract.title });
+    this.message.set(`${contract.title} activated. ${contract.progressHint}`);
+  }
+}
+
+@Component({
   selector: 'app-arena',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -585,17 +730,36 @@ export class TeamBuilderPage {
       </header>
       <div class="grid">
         @for (mode of modes; track mode.id) {
-          <article class="panel">
-            <p class="eyebrow">{{ mode.modifier }}</p>
+          <article class="panel arena-card">
+            <p class="eyebrow">{{ mode.tier }} // {{ mode.cadence }}</p>
             <h3>{{ mode.name }}</h3>
             <p class="muted">{{ mode.description }}</p>
+            <p class="muted">{{ mode.hazard }}</p>
             <div class="chip-row"><span class="chip">{{ mode.teamSize }}v{{ mode.teamSize }}</span><span class="chip">{{ mode.field || 'Neutral Field' }}</span><span class="chip chip--hot">{{ mode.reward }} bits</span></div>
+            <div class="chip-row">
+              @for (tag of mode.nexusTags; track tag) { <span class="chip">{{ tag }}</span> }
+            </div>
+            <p class="muted">{{ mode.modifier }}</p>
             <button class="btn btn--primary" type="button" (click)="start(mode)">Start battle</button>
           </article>
         }
       </div>
 
       @if (battle(); as result) {
+        @if (intel(); as scan) {
+          <article class="panel nexus-intel">
+            <div>
+              <p class="eyebrow">Nexus Intel // {{ scan.threat }}</p>
+              <h3>{{ scan.recommendedProtocol }}</h3>
+              <p class="lead">Edge {{ scan.playerEdge }} · Reward forecast {{ scan.rewardForecast }} bits</p>
+            </div>
+            <div class="grid">
+              @for (note of scan.notes; track note) {
+                <div class="metric"><span class="metric__label">Intel</span><strong class="metric__value">{{ note }}</strong></div>
+              }
+            </div>
+          </article>
+        }
         <div class="battle-stage">
           <div class="combatant">
             <h3>Your Team</h3>
@@ -633,6 +797,7 @@ export class ArenaPage {
   protected readonly fallbackImage = FALLBACK_IMAGE;
   protected readonly modes = ARENA_MODES;
   protected readonly battle = signal<BattleResult | null>(null);
+  protected readonly intel = signal<ArenaIntel | null>(null);
   protected readonly summary = computed(() => (this.battle() ? battleSummary(this.battle()!) : ''));
 
   protected onImageError(event: Event): void {
@@ -654,7 +819,14 @@ export class ArenaPage {
       loadMany(this.repo, playerIds),
       loadMany(this.repo, mode.opponentIds.slice(0, mode.teamSize)),
     ]);
-    const result = simulateBattle(player, enemy, { mode: mode.id, arenaField: mode.field });
+    const scan = arenaIntel(player, enemy, mode.reward);
+    const result = simulateBattle(player, enemy, {
+      mode: mode.id,
+      arenaField: mode.field,
+      playerNexus: combatTuningFromProfile(analyzeDigiLink(player)),
+      enemyNexus: combatTuningFromProfile(analyzeDigiLink(enemy)),
+    });
+    this.intel.set(scan);
     this.battle.set(result);
     await this.progress.saveBattle({
       mode: mode.name,

@@ -60,25 +60,28 @@ interface NavItem {
       color: var(--color-primary-400);
     }
     .sidebar__icon {
-      font-size: 1.2rem;
       width: 1.5rem;
       text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 800;
     }
   `,
 })
 export class Sidebar {
   protected readonly items: NavItem[] = [
-    { path: '/', label: 'Home', icon: '◈' },
-    { path: '/dex', label: 'DigiDex', icon: '▦' },
-    { path: '/evolution-lab', label: 'Evolution Lab', icon: '⟲' },
-    { path: '/fields', label: 'Fields', icon: '◌' },
-    { path: '/skills', label: 'Skills', icon: '✸' },
-    { path: '/team-builder', label: 'Team Builder', icon: '✦' },
-    { path: '/arena', label: 'Arena', icon: '⚔' },
-    { path: '/random-battle', label: 'Random Battle', icon: '⚄' },
-    { path: '/tournaments', label: 'Tournaments', icon: '♛' },
-    { path: '/compare', label: 'Compare', icon: '⇄' },
-    { path: '/collection', label: 'Collection', icon: '★' },
-    { path: '/settings', label: 'Settings', icon: '⚙' },
+    { path: '/', label: 'Home', icon: 'HM' },
+    { path: '/dex', label: 'DigiDex', icon: 'DX' },
+    { path: '/evolution-lab', label: 'Evolution Lab', icon: 'EV' },
+    { path: '/fields', label: 'Fields', icon: 'FD' },
+    { path: '/skills', label: 'Skills', icon: 'SK' },
+    { path: '/team-builder', label: 'Team Builder', icon: 'TM' },
+    { path: '/nexus', label: 'Nexus Lab', icon: 'NX' },
+    { path: '/arena', label: 'Arena', icon: 'AR' },
+    { path: '/random-battle', label: 'Random Battle', icon: 'RB' },
+    { path: '/tournaments', label: 'Tournaments', icon: 'TR' },
+    { path: '/compare', label: 'Compare', icon: 'CP' },
+    { path: '/collection', label: 'Collection', icon: 'CL' },
+    { path: '/settings', label: 'Settings', icon: 'ST' },
   ];
 }

@@ -27,6 +27,10 @@ export const routes: Routes = [
     path: 'team-builder',
     loadComponent: () => import('./features/game/game-pages').then((m) => m.TeamBuilderPage),
   },
+  {
+    path: 'nexus',
+    loadComponent: () => import('./features/game/game-pages').then((m) => m.NexusLabPage),
+  },
   { path: 'arena', loadComponent: () => import('./features/game/game-pages').then((m) => m.ArenaPage) },
   {
     path: 'arena/battle',

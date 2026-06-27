@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { Digimon } from '../core/models/digimon';
 import {
+  analyzeDigiLink,
   applyMasteryEvent,
   attributeMultiplier,
+  combatTuningFromProfile,
   defaultDigiCoreProfile,
   deriveStats,
+  generateNexusContracts,
   levelTier,
   runTournament,
   scoreTeam,
@@ -56,10 +59,12 @@ describe('team and battle systems', () => {
   });
 
   it('terminates a deterministic battle with a replayable event log', () => {
+    const playerNexus = combatTuningFromProfile(analyzeDigiLink([agumon, gabumon]));
     const first = simulateBattle([agumon, gabumon], [devimon, greymon], {
       mode: 'spec',
       arenaField: 'Dragon Roar',
       seed: 123,
+      playerNexus,
     });
     const second = simulateBattle([agumon, gabumon], [devimon, greymon], {
       mode: 'spec',
@@ -67,8 +72,17 @@ describe('team and battle systems', () => {
       seed: 123,
     });
     expect(first.winner).toBe(second.winner);
+    expect(first.events.some((event) => event.type === 'nexus-pulse')).toBe(true);
     expect(first.events.at(-1)?.type).toBe('battle-end');
     expect(first.turns).toBeLessThanOrEqual(72);
+  });
+
+  it('creates DigiLink Nexus contracts from team chemistry', () => {
+    const profile = analyzeDigiLink([agumon, gabumon, greymon]);
+    const contracts = generateNexusContracts(profile);
+    expect(profile.score).toBeGreaterThan(0);
+    expect(profile.perks.damageModifier).toBeGreaterThanOrEqual(1);
+    expect(contracts).toHaveLength(3);
   });
 });
 

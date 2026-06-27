@@ -47,6 +47,7 @@ export class Home {
     { label: 'Random Digimon', icon: '⚄', action: () => void this.randomDigimon() },
     { label: 'Random Battle', icon: '⚔', action: () => this.go('/random-battle') },
     { label: 'Build Team', icon: '✦', action: () => this.go('/team-builder') },
+    { label: 'Nexus Lab', icon: '◇', action: () => this.go('/nexus') },
     { label: 'Evolution Lab', icon: '⟲', action: () => this.go('/evolution-lab') },
   ];
 

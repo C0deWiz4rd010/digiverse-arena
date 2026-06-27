@@ -366,6 +366,54 @@
   border-color: rgba(53, 255, 158, 0.34);
 }
 
+.arena-card,
+.nexus-board,
+.nexus-intel {
+  position: relative;
+  overflow: hidden;
+}
+
+.arena-card::before,
+.nexus-board::before,
+.nexus-intel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-success-500), var(--color-accent-500));
+}
+
+.nexus-board {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  border: 1px solid rgba(53, 255, 158, 0.28);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(4, 12, 22, 0.38);
+}
+
+.contract-mini {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.contract-mini strong {
+  color: var(--text-main);
+}
+
+.contract-card .btn {
+  width: auto;
+  margin-top: var(--space-2);
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
