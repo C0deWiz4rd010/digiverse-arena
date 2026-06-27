@@ -42,7 +42,7 @@ export const routes: Routes = [
   },
   {
     path: 'tournaments',
-    loadComponent: () => import('./features/game/game-pages').then((m) => m.TournamentsPage),
+    loadComponent: () => import('./features/game/tournaments-page').then((m) => m.TournamentsPage),
   },
   {
     path: 'compare',

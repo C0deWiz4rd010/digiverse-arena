@@ -1,7 +1,25 @@
 import type { Digimon } from '../../core/models/digimon';
 import { battleSummary, simulateBattle, type BattleResult } from '../battle-engine/battle-engine';
+import type { MasteryTrack } from '../mastery/digicore-mastery';
 import { analyzeDigiLink, combatTuningFromProfile } from '../nexus/digilink-nexus';
 import { deriveStats, statTotal } from '../stats/battle-stats';
+
+export type TournamentStrategyId = 'balanced' | 'crowd-roar' | 'counter-scout' | 'prize-hunt' | 'overdrive';
+
+export interface TournamentStrategy {
+  id: TournamentStrategyId;
+  label: string;
+  shortLabel: string;
+  stance: string;
+  description: string;
+  upside: string;
+  risk: string;
+  hypeBonus: number;
+  rewardBonus: number;
+  safetyBonus: number;
+  chaosBonus: number;
+  masteryTrack: MasteryTrack;
+}
 
 export interface TournamentDefinition {
   id: string;
@@ -37,6 +55,9 @@ export interface TournamentMatch {
   upset: boolean;
   headline: string;
   rewardBits: number;
+  dramaTags: string[];
+  swing: number;
+  playerInvolved: boolean;
 }
 
 export interface TournamentContender {
@@ -48,6 +69,7 @@ export interface TournamentContender {
   seedRank: number;
   teamIds: number[];
   crest: string;
+  leadImage: string | null;
 }
 
 export interface TournamentStoryBeat {
@@ -55,6 +77,36 @@ export interface TournamentStoryBeat {
   title: string;
   detail: string;
   intensity: number;
+}
+
+export interface TournamentPhase {
+  round: number;
+  label: string;
+  summary: string;
+  highestHype: number;
+  winners: string[];
+  playerAlive: boolean;
+  shock: boolean;
+}
+
+export interface TournamentMoment {
+  id: string;
+  kind: 'opening' | 'rival' | 'upset' | 'clutch' | 'sponsor' | 'final' | 'reward' | 'glitch';
+  round: number;
+  title: string;
+  detail: string;
+  intensity: number;
+  tone: 'cool' | 'hot' | 'danger' | 'success';
+  matchId?: string;
+}
+
+export interface TournamentRewardOption {
+  id: string;
+  title: string;
+  track: MasteryTrack;
+  amount: number;
+  description: string;
+  rarity: 'standard' | 'rare' | 'legend';
 }
 
 export interface TournamentRun {
@@ -65,12 +117,94 @@ export interface TournamentRun {
   matches: TournamentMatch[];
   contenders: TournamentContender[];
   storyBeats: TournamentStoryBeat[];
+  phases: TournamentPhase[];
+  moments: TournamentMoment[];
+  rewardOptions: TournamentRewardOption[];
+  strategy: TournamentStrategy;
   finalHeadline: string;
   hypeScore: number;
   upsetCount: number;
+  momentum: number;
+  totalRewardBits: number;
+  rivalName: string | null;
+  crowdMood: string;
+  spotlightMatchId: string | null;
   playerPlacement: string;
   rewardSummary: string;
 }
+
+export const TOURNAMENT_STRATEGIES: TournamentStrategy[] = [
+  {
+    id: 'balanced',
+    label: 'Balanced Circuit',
+    shortLabel: 'Balanced',
+    stance: 'Stable reads, clean rewards.',
+    description: 'Default tournament stance with reliable tempo and no sharp downside.',
+    upside: 'Keeps the bracket predictable.',
+    risk: 'No explosive bonus.',
+    hypeBonus: 0,
+    rewardBonus: 0,
+    safetyBonus: 0,
+    chaosBonus: 0,
+    masteryTrack: 'tactics',
+  },
+  {
+    id: 'crowd-roar',
+    label: 'Crowd Roar',
+    shortLabel: 'Roar',
+    stance: 'Make every hit louder.',
+    description: 'Leans into flashy finals, crit pressure and high-intensity broadcast moments.',
+    upside: '+hype and a small crit lift for your team.',
+    risk: 'Close losses still become very loud.',
+    hypeBonus: 10,
+    rewardBonus: 0.08,
+    safetyBonus: 0,
+    chaosBonus: 4,
+    masteryTrack: 'arena',
+  },
+  {
+    id: 'counter-scout',
+    label: 'Counter Scout',
+    shortLabel: 'Scout',
+    stance: 'Read the bracket before it bites.',
+    description: 'Trades spectacle for better defensive reads and cleaner upset control.',
+    upside: '+guard stability for your team.',
+    risk: 'Lower crowd spike.',
+    hypeBonus: -2,
+    rewardBonus: 0.04,
+    safetyBonus: 12,
+    chaosBonus: -4,
+    masteryTrack: 'scan',
+  },
+  {
+    id: 'prize-hunt',
+    label: 'Prize Hunt',
+    shortLabel: 'Prize',
+    stance: 'Route the bracket for loot.',
+    description: 'Squeezes more bits and a stronger reward draft out of each round.',
+    upside: '+reward bits and stronger mastery payout.',
+    risk: 'Less combat help.',
+    hypeBonus: 2,
+    rewardBonus: 0.22,
+    safetyBonus: 0,
+    chaosBonus: 1,
+    masteryTrack: 'tactics',
+  },
+  {
+    id: 'overdrive',
+    label: 'Nexus Overdrive',
+    shortLabel: 'Overdrive',
+    stance: 'Break the bracket open.',
+    description: 'A risky power route that boosts damage, spectacle and glitch surprises.',
+    upside: '+damage pressure and maximum hype.',
+    risk: 'More volatile story moments.',
+    hypeBonus: 15,
+    rewardBonus: 0.14,
+    safetyBonus: -8,
+    chaosBonus: 14,
+    masteryTrack: 'skill',
+  },
+];
 
 export const TOURNAMENTS: TournamentDefinition[] = [
   {
@@ -175,9 +309,20 @@ export function tournamentDefinition(id: string): TournamentDefinition {
   return TOURNAMENTS.find((tournament) => tournament.id === id) ?? TOURNAMENTS[0];
 }
 
-export function runTournament(definition: TournamentDefinition, playerTeam: Digimon[], opponents: Digimon[]): TournamentRun {
+export function tournamentStrategy(id: TournamentStrategyId): TournamentStrategy {
+  return TOURNAMENT_STRATEGIES.find((strategy) => strategy.id === id) ?? TOURNAMENT_STRATEGIES[0];
+}
+
+export function runTournament(
+  definition: TournamentDefinition,
+  playerTeam: Digimon[],
+  opponents: Digimon[],
+  strategyId: TournamentStrategyId = 'balanced',
+): TournamentRun {
+  const strategy = tournamentStrategy(strategyId);
   const matches: TournamentMatch[] = [];
   const contendersSnapshot = createContenders(definition, playerTeam, opponents);
+  const rival = contendersSnapshot.filter((contender) => !contender.player).sort((a, b) => b.power - a.power)[0] ?? null;
   let round = 1;
   let contenders = contendersSnapshot.map((contender) => ({
     ...contender,
@@ -192,16 +337,18 @@ export function runTournament(definition: TournamentDefinition, playerTeam: Digi
       const result = simulateBattle(left.team, right.team, {
         mode: definition.id,
         arenaField: definition.field,
-        seed: definition.seedIds[0] + round * 101 + i,
-        playerNexus: combatTuningFromProfile(analyzeDigiLink(left.team)),
-        enemyNexus: combatTuningFromProfile(analyzeDigiLink(right.team)),
+        seed: definition.seedIds[0] + round * 101 + i + strategySeedOffset(strategy),
+        playerNexus: tuneForStrategy(combatTuningFromProfile(analyzeDigiLink(left.team)), strategy, left.player),
+        enemyNexus: tuneForStrategy(combatTuningFromProfile(analyzeDigiLink(right.team)), strategy, right.player),
       });
       const leftWins = result.winner === 'player' || (result.winner === 'draw' && left.power >= right.power);
       const winner = leftWins ? left : right;
       const loser = leftWins ? right : left;
       const margin = matchMargin(result, leftWins);
-      const upset = winner.power + 35 < loser.power;
-      const hype = matchHype(definition, result, round, margin, upset, contenders.length === 2);
+      const playerInvolved = left.player || right.player;
+      const upset = winner.power + 35 + strategy.safetyBonus < loser.power;
+      const hype = matchHype(definition, result, round, margin, upset, contenders.length === 2, strategy, playerInvolved);
+      const swing = Math.round(Math.abs(left.power - right.power) + Math.abs(margin) + (upset ? 20 : 0));
       winners.push(winner);
       matches.push({
         id: `${definition.id}-r${round}-m${i / 2}`,
@@ -219,7 +366,10 @@ export function runTournament(definition: TournamentDefinition, playerTeam: Digi
         margin,
         upset,
         headline: matchHeadline(definition, winner.name, loser.name, round, upset, margin, contenders.length === 2),
-        rewardBits: rewardBits(definition, round, hype, upset),
+        rewardBits: rewardBits(definition, round, hype, upset, strategy, playerInvolved),
+        dramaTags: matchDramaTags(definition, result, margin, upset, contenders.length === 2, playerInvolved, strategy),
+        swing,
+        playerInvolved,
       });
     }
     contenders = winners;
@@ -227,10 +377,14 @@ export function runTournament(definition: TournamentDefinition, playerTeam: Digi
   }
 
   const championName = contenders[0]?.name ?? null;
-  const storyBeats = createStoryBeats(definition, matches, championName);
+  const phases = createPhases(matches);
+  const moments = createMoments(definition, matches, championName, strategy, rival?.name ?? null);
+  const storyBeats = createStoryBeats(definition, matches, championName, moments);
   const final = matches[matches.length - 1];
   const hypeScore = Math.round(matches.reduce((sum, match) => sum + match.hype, 0) / Math.max(1, matches.length));
   const upsetCount = matches.filter((match) => match.upset).length;
+  const totalRewardBits = matches.reduce((sum, match) => sum + match.rewardBits, 0);
+  const momentum = Math.min(100, Math.max(0, Math.round(hypeScore + upsetCount * 7 + strategy.hypeBonus)));
 
   return {
     id: `${definition.id}-${Date.now()}`,
@@ -240,11 +394,20 @@ export function runTournament(definition: TournamentDefinition, playerTeam: Digi
     matches,
     contenders: contendersSnapshot,
     storyBeats,
+    phases,
+    moments,
+    rewardOptions: createRewardOptions(definition, strategy, hypeScore, totalRewardBits),
+    strategy,
     finalHeadline: final?.headline ?? 'No final was resolved.',
     hypeScore,
     upsetCount,
+    momentum,
+    totalRewardBits,
+    rivalName: rival?.name ?? null,
+    crowdMood: crowdMood(hypeScore, upsetCount, strategy),
+    spotlightMatchId: final?.id ?? null,
     playerPlacement: playerPlacement(matches),
-    rewardSummary: `${definition.reward} + ${matches.reduce((sum, match) => sum + match.rewardBits, 0)} bits`,
+    rewardSummary: `${definition.reward} + ${totalRewardBits} bits`,
   };
 }
 
@@ -271,6 +434,7 @@ function createContenders(
       seedRank: 1,
       teamIds: playerTeam.map((digimon) => digimon.id),
       crest: 'Player Crest',
+      leadImage: playerTeam[0]?.image ?? null,
     },
   ];
 
@@ -289,6 +453,7 @@ function createContenders(
       seedRank: i + 2,
       teamIds: team.map((digimon) => digimon.id),
       crest: seedCrest(definition, i),
+      leadImage: lead?.image ?? null,
     });
   }
 
@@ -308,6 +473,32 @@ function teamPower(team: Digimon[]): number {
   return Math.round(team.reduce((sum, digimon) => sum + statTotal(deriveStats(digimon)), 0) / team.length);
 }
 
+function strategySeedOffset(strategy: TournamentStrategy): number {
+  return TOURNAMENT_STRATEGIES.findIndex((item) => item.id === strategy.id) * 997;
+}
+
+function tuneForStrategy(
+  tuning: ReturnType<typeof combatTuningFromProfile>,
+  strategy: TournamentStrategy,
+  playerOwned: boolean,
+): ReturnType<typeof combatTuningFromProfile> {
+  if (!playerOwned) return tuning;
+  if (strategy.id === 'crowd-roar') {
+    return { ...tuning, critBonus: Number((tuning.critBonus + 0.018).toFixed(3)), focusStart: tuning.focusStart + 1 };
+  }
+  if (strategy.id === 'counter-scout') {
+    return { ...tuning, guardChance: Number((tuning.guardChance + 0.04).toFixed(3)), focusStart: tuning.focusStart + 1 };
+  }
+  if (strategy.id === 'overdrive') {
+    return {
+      ...tuning,
+      critBonus: Number((tuning.critBonus + 0.012).toFixed(3)),
+      damageModifier: Number((tuning.damageModifier + 0.045).toFixed(3)),
+    };
+  }
+  return tuning;
+}
+
 function matchMargin(result: BattleResult, leftWins: boolean): number {
   const winnerTeam = leftWins ? result.player : result.enemy;
   const loserTeam = leftWins ? result.enemy : result.player;
@@ -324,19 +515,40 @@ function matchHype(
   margin: number,
   upset: boolean,
   final: boolean,
+  strategy: TournamentStrategy,
+  playerInvolved: boolean,
 ): number {
   const criticals = result.events.filter((event) => event.type === 'damage' && event.critical).length;
   const kos = result.events.filter((event) => event.type === 'ko').length;
   const closeness = Math.max(0, 30 - Math.abs(margin));
   const formatBoost = definition.format === 'gauntlet' ? 7 : definition.format === 'boss-rush' ? 12 : 0;
+  const playerBoost = playerInvolved ? 8 : 0;
   return Math.min(
     100,
-    30 + definition.difficulty * 6 + round * 5 + criticals * 4 + kos * 5 + closeness + (upset ? 18 : 0) + (final ? 16 : 0) + formatBoost,
+    30 +
+      definition.difficulty * 6 +
+      round * 5 +
+      criticals * 4 +
+      kos * 5 +
+      closeness +
+      (upset ? 18 : 0) +
+      (final ? 16 : 0) +
+      formatBoost +
+      playerBoost +
+      strategy.hypeBonus,
   );
 }
 
-function rewardBits(definition: TournamentDefinition, round: number, hype: number, upset: boolean): number {
-  return Math.round(definition.difficulty * 8 + round * 5 + hype / 4 + (upset ? 12 : 0));
+function rewardBits(
+  definition: TournamentDefinition,
+  round: number,
+  hype: number,
+  upset: boolean,
+  strategy: TournamentStrategy,
+  playerInvolved: boolean,
+): number {
+  const base = definition.difficulty * 8 + round * 5 + hype / 4 + (upset ? 12 : 0) + (playerInvolved ? 6 : 0);
+  return Math.round(base * (1 + strategy.rewardBonus));
 }
 
 function matchHeadline(
@@ -354,15 +566,173 @@ function matchHeadline(
   return `${winner} advances past ${loser}.`;
 }
 
+function matchDramaTags(
+  definition: TournamentDefinition,
+  result: BattleResult,
+  margin: number,
+  upset: boolean,
+  final: boolean,
+  playerInvolved: boolean,
+  strategy: TournamentStrategy,
+): string[] {
+  const criticals = result.events.filter((event) => event.type === 'damage' && event.critical).length;
+  const kos = result.events.filter((event) => event.type === 'ko').length;
+  return [
+    ...(playerInvolved ? ['your run'] : []),
+    ...(upset ? ['upset alarm'] : []),
+    ...(Math.abs(margin) < 9 ? ['photo finish'] : []),
+    ...(criticals >= 2 ? ['crit storm'] : []),
+    ...(kos >= definition.teamSize ? ['ko chain'] : []),
+    ...(final ? ['final theater'] : []),
+    ...(strategy.id === 'overdrive' ? ['overdrive'] : []),
+  ].slice(0, 4);
+}
+
+function createPhases(matches: TournamentMatch[]): TournamentPhase[] {
+  const rounds = [...new Set(matches.map((match) => match.round))];
+  let playerStillAlive = true;
+  return rounds.map((round) => {
+    const roundMatches = matches.filter((match) => match.round === round);
+    const highest = [...roundMatches].sort((a, b) => b.hype - a.hype)[0];
+    if (
+      roundMatches.some(
+        (match) =>
+          match.playerInvolved && match.winnerName !== 'Your Team' && (match.playerName === 'Your Team' || match.enemyName === 'Your Team'),
+      )
+    ) {
+      playerStillAlive = false;
+    }
+    return {
+      round,
+      label: round === rounds.length ? 'Final Gate' : round === 1 ? 'Opening Gate' : `Round ${round}`,
+      summary: highest?.headline ?? `Round ${round} is waiting for broadcast data.`,
+      highestHype: highest?.hype ?? 0,
+      winners: roundMatches.flatMap((match) => (match.winnerName ? [match.winnerName] : [])),
+      playerAlive: playerStillAlive,
+      shock: roundMatches.some((match) => match.upset || match.dramaTags.includes('photo finish')),
+    };
+  });
+}
+
+function createMoments(
+  definition: TournamentDefinition,
+  matches: TournamentMatch[],
+  championName: string | null,
+  strategy: TournamentStrategy,
+  rivalName: string | null,
+): TournamentMoment[] {
+  const final = matches[matches.length - 1];
+  const biggestUpset = [...matches].sort((a, b) => Number(b.upset) - Number(a.upset) || b.hype - a.hype)[0];
+  const clutch = [...matches]
+    .filter((match) => Math.abs(match.margin) < 10)
+    .sort((a, b) => b.hype - a.hype)[0];
+  const sponsorMatch = [...matches].sort((a, b) => b.rewardBits - a.rewardBits)[0];
+  return [
+    {
+      id: 'opening',
+      kind: 'opening',
+      round: 0,
+      title: `${definition.sponsor} lights the circuit`,
+      detail: `${strategy.label} locked. ${strategy.stance}`,
+      intensity: Math.max(35, 45 + strategy.hypeBonus),
+      tone: 'cool',
+    },
+    ...(rivalName
+      ? [
+          {
+            id: 'rival',
+            kind: 'rival' as const,
+            round: 1,
+            title: 'Rival signal found',
+            detail: `${rivalName} enters as the power target. Watch the bracket path.`,
+            intensity: 62,
+            tone: 'danger' as const,
+          },
+        ]
+      : []),
+    ...(biggestUpset?.upset
+      ? [
+          {
+            id: 'upset',
+            kind: 'upset' as const,
+            round: biggestUpset.round,
+            title: 'Upset shockwave',
+            detail: biggestUpset.headline,
+            intensity: biggestUpset.hype,
+            tone: 'hot' as const,
+            matchId: biggestUpset.id,
+          },
+        ]
+      : []),
+    ...(clutch
+      ? [
+          {
+            id: 'clutch',
+            kind: 'clutch' as const,
+            round: clutch.round,
+            title: 'Photo-finish window',
+            detail: `${clutch.winnerName} escapes with a ${Math.abs(clutch.margin)} margin swing.`,
+            intensity: clutch.hype,
+            tone: 'success' as const,
+            matchId: clutch.id,
+          },
+        ]
+      : []),
+    ...(strategy.chaosBonus >= 10
+      ? [
+          {
+            id: 'glitch',
+            kind: 'glitch' as const,
+            round: Math.max(1, Math.floor((final?.round ?? 1) / 2)),
+            title: 'Nexus glitch surge',
+            detail: 'Overdrive bends the broadcast feed. Rewards climb, but every close hit feels dangerous.',
+            intensity: Math.min(100, 70 + strategy.chaosBonus),
+            tone: 'danger' as const,
+          },
+        ]
+      : []),
+    {
+      id: 'sponsor',
+      kind: 'sponsor',
+      round: sponsorMatch?.round ?? 1,
+      title: 'Sponsor bounty spiked',
+      detail: sponsorMatch ? `${sponsorMatch.rewardBits} bits ride on ${sponsorMatch.headline}` : 'Reward data is warming up.',
+      intensity: Math.min(100, sponsorMatch?.rewardBits ?? 40),
+      tone: 'hot',
+      matchId: sponsorMatch?.id,
+    },
+    {
+      id: 'final',
+      kind: 'final',
+      round: final?.round ?? 0,
+      title: championName ? `${championName} takes the broadcast` : 'Final unresolved',
+      detail: final?.headline ?? 'No final result was generated.',
+      intensity: final?.hype ?? 0,
+      tone: 'success',
+      matchId: final?.id,
+    },
+    {
+      id: 'reward',
+      kind: 'reward',
+      round: final?.round ?? 0,
+      title: 'Reward draft online',
+      detail: 'Choose one payout route to push your local DigiCore mastery.',
+      intensity: Math.min(100, 50 + strategy.rewardBonus * 120),
+      tone: 'cool',
+    },
+  ];
+}
+
 function createStoryBeats(
   definition: TournamentDefinition,
   matches: TournamentMatch[],
   championName: string | null,
+  moments: TournamentMoment[],
 ): TournamentStoryBeat[] {
   const openingHype = Math.max(...matches.filter((match) => match.round === 1).map((match) => match.hype), 0);
   const biggestUpset = [...matches].sort((a, b) => Number(b.upset) - Number(a.upset) || b.hype - a.hype)[0];
   const final = matches[matches.length - 1];
-  return [
+  const legacyBeats = [
     {
       round: 0,
       title: `${definition.sponsor} opens the gates`,
@@ -386,6 +756,61 @@ function createStoryBeats(
       intensity: final?.hype ?? 0,
     },
   ];
+  const momentBeats = moments
+    .filter((moment) => ['rival', 'clutch', 'sponsor', 'glitch'].includes(moment.kind))
+    .slice(0, 3)
+    .map((moment) => ({
+      round: moment.round,
+      title: moment.title,
+      detail: moment.detail,
+      intensity: moment.intensity,
+    }));
+  return [...legacyBeats, ...momentBeats];
+}
+
+function createRewardOptions(
+  definition: TournamentDefinition,
+  strategy: TournamentStrategy,
+  hypeScore: number,
+  totalRewardBits: number,
+): TournamentRewardOption[] {
+  const tierBonus = definition.difficulty + Math.round(totalRewardBits / 120);
+  const strategyBonus = strategy.id === 'prize-hunt' ? 6 : strategy.id === 'overdrive' ? 4 : 2;
+  return [
+    {
+      id: 'crowd-cache',
+      title: 'Crowd Cache',
+      track: 'arena',
+      amount: Math.max(8, Math.round(hypeScore / 8) + tierBonus),
+      description: 'Convert broadcast heat into Arena mastery and prestige.',
+      rarity: hypeScore >= 82 ? 'legend' : hypeScore >= 64 ? 'rare' : 'standard',
+    },
+    {
+      id: 'bracket-notes',
+      title: 'Bracket Notes',
+      track: 'tactics',
+      amount: 10 + tierBonus + strategyBonus,
+      description: 'Bank matchup reads for stronger future team decisions.',
+      rarity: strategy.masteryTrack === 'tactics' ? 'rare' : 'standard',
+    },
+    {
+      id: 'strategy-relic',
+      title: `${strategy.shortLabel} Relic`,
+      track: strategy.masteryTrack,
+      amount: 9 + tierBonus + strategyBonus,
+      description: `Double down on the ${strategy.shortLabel} route from this run.`,
+      rarity: strategy.id === 'overdrive' || strategy.id === 'prize-hunt' ? 'rare' : 'standard',
+    },
+  ];
+}
+
+function crowdMood(hypeScore: number, upsetCount: number, strategy: TournamentStrategy): string {
+  if (strategy.id === 'overdrive' && hypeScore > 70) return 'glitch-drunk';
+  if (hypeScore >= 85) return 'deafening';
+  if (upsetCount > 1) return 'unhinged';
+  if (hypeScore >= 65) return 'electric';
+  if (hypeScore >= 45) return 'locked-in';
+  return 'calm';
 }
 
 function playerPlacement(matches: TournamentMatch[]): string {

@@ -44,10 +44,17 @@ test.describe('DigiVerse Arena smoke', () => {
 
     await page.goto('/tournaments');
     await expect(page.getByRole('heading', { name: 'Grand Circuit Tournament Mode' })).toBeVisible();
-    await page.getByRole('button', { name: 'Run bracket' }).first().click();
+    await page.getByRole('button', { name: 'Nexus Overdrive' }).click();
+    await page.getByRole('button', { name: 'Run bracket' }).click();
     await expect(page.locator('text=Champion:')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Story Feed' })).toBeVisible();
-    await expect.poll(() => page.locator('.story-beat').count()).toBeGreaterThanOrEqual(2);
+    await expect(page.getByRole('heading', { name: 'Broadcast Moments' })).toBeVisible();
+    await expect(page.getByText('Match Spotlight')).toBeVisible();
+    await page.getByRole('button', { name: 'Reveal next round' }).first().click();
+    await expect.poll(() => page.locator('.tournament-match-card').count()).toBeGreaterThanOrEqual(3);
+    await page.locator('.tournament-match-card').first().click();
+    await expect(page.locator('.spotlight-log p').first()).toBeVisible();
+    await page.getByRole('button', { name: /Relic/ }).click();
+    await expect(page.getByRole('status')).toContainText('claimed');
 
     expect(pageErrors).toEqual([]);
     expect(consoleErrors.filter((entry) => !entry.includes('favicon'))).toEqual([]);

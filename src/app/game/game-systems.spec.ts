@@ -116,6 +116,35 @@ describe('tournaments and mastery', () => {
     expect(run.rewardSummary).toContain('bits');
   });
 
+  it('adds strategy, phases, moments and reward draft data to tournament runs', () => {
+    const run = runTournament(
+      {
+        id: 'overdrive-cup',
+        name: 'Overdrive Cup',
+        tagline: 'Spec spectacle.',
+        format: 'boss-rush',
+        size: 4,
+        teamSize: 1,
+        field: 'Dragon Roar',
+        seedIds: [1, 2, 3, 4],
+        description: '',
+        rule: '',
+        reward: 'Spec Crown',
+        difficulty: 4,
+        modifiers: ['Spec modifier'],
+        sponsor: 'Spec League',
+      },
+      [agumon],
+      [gabumon, devimon, greymon],
+      'overdrive',
+    );
+    expect(run.strategy.id).toBe('overdrive');
+    expect(run.phases.length).toBeGreaterThan(0);
+    expect(run.moments.some((moment) => moment.kind === 'glitch')).toBe(true);
+    expect(run.rewardOptions).toHaveLength(3);
+    expect(run.matches.some((match) => match.dramaTags.length > 0)).toBe(true);
+  });
+
   it('unlocks DigiCore badges at thresholds', () => {
     const profile = applyMasteryEvent(defaultDigiCoreProfile(), {
       track: 'arena',
