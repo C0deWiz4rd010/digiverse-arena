@@ -6,11 +6,13 @@ import {
   type DigimonNoteRecord,
   type FavoriteRecord,
   type MiniGameRunRecord,
+  type RivalRunRecord,
   type SavedTeamRecord,
   type TournamentHistoryRecord,
 } from '../cache/digi-db';
 import type { DigiCoreQuest, CampaignFacts, CampaignState } from '../../game/campaign/campaign-content';
 import { dailyQuests, defaultCampaignState } from '../../game/campaign/campaign-content';
+import type { RivalDuelResult } from '../../game/rivals/rival-system';
 import {
   applyMasteryEvent,
   defaultDigiCoreProfile,
@@ -146,11 +148,18 @@ export class GameProgressRepository {
     const today = dayIndex();
     if (stored?.data) {
       const state = stored.data as CampaignState;
-      if (state.dailySeed === today) return state;
-      const next = {
-        ...defaultCampaignState(today),
+      const normalizedState: CampaignState = {
+        ...state,
         favoriteDigimonIds: state.favoriteDigimonIds ?? [],
         completedMiniGames: state.completedMiniGames ?? [],
+        defeatedRivalIds: state.defeatedRivalIds ?? [],
+      };
+      if (normalizedState.dailySeed === today) return normalizedState;
+      const next = {
+        ...defaultCampaignState(today),
+        favoriteDigimonIds: normalizedState.favoriteDigimonIds,
+        completedMiniGames: normalizedState.completedMiniGames,
+        defeatedRivalIds: normalizedState.defeatedRivalIds,
       };
       await this.saveCampaignState(next);
       return next;
@@ -166,7 +175,7 @@ export class GameProgressRepository {
   }
 
   async campaignFacts(): Promise<CampaignFacts> {
-    const [scans, favorites, teams, battles, tournaments, notes, miniGameRuns, mastery] = await Promise.all([
+    const [scans, favorites, teams, battles, tournaments, notes, miniGameRuns, rivalRuns, mastery] = await Promise.all([
       digiDb.digimon.count().catch(() => 0),
       digiDb.favorites.count().catch(() => 0),
       digiDb.teams.count().catch(() => 0),
@@ -174,6 +183,7 @@ export class GameProgressRepository {
       digiDb.tournaments.count().catch(() => 0),
       digiDb.notes.count().catch(() => 0),
       digiDb.miniGameRuns.toArray().catch(() => [] as MiniGameRunRecord[]),
+      digiDb.rivalRuns.toArray().catch(() => [] as RivalRunRecord[]),
       this.mastery(),
     ]);
     return {
@@ -184,6 +194,7 @@ export class GameProgressRepository {
       tournaments,
       notes,
       miniGames: miniGameRuns.filter((run) => run.result === 'win').length,
+      rivals: rivalRuns.filter((run) => run.outcome === 'clear').length,
       masteryTotal: totalMastery(mastery),
     };
   }
@@ -207,6 +218,35 @@ export class GameProgressRepository {
 
   async listMiniGameRuns(limit = 12): Promise<MiniGameRunRecord[]> {
     return digiDb.miniGameRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async listRivalRuns(limit = 12): Promise<RivalRunRecord[]> {
+    return digiDb.rivalRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async saveRivalRun(result: RivalDuelResult): Promise<void> {
+    await digiDb.rivalRuns.put({
+      id: `rival-${Date.now()}-${Math.round(Math.random() * 9999)}`,
+      rivalId: result.signal.rivalId,
+      rivalName: result.signal.rivalName,
+      outcome: result.outcome,
+      counterAttribute: result.counterAttribute,
+      rewardBits: result.rewardBits,
+      recap: result.recap,
+      createdAt: Date.now(),
+    });
+    if (result.outcome === 'clear') {
+      const state = await this.campaignState();
+      await this.saveCampaignState({
+        ...state,
+        defeatedRivalIds: [...new Set([...(state.defeatedRivalIds ?? []), result.signal.rivalId])],
+      });
+    }
+    await this.applyMastery({
+      track: result.masteryTrack,
+      amount: result.masteryAmount,
+      reason: `Rival Signal ${result.signal.rivalName}`,
+    });
   }
 
   async recordMiniGame(
@@ -247,6 +287,7 @@ export class GameProgressRepository {
       digiDb.notes.clear(),
       digiDb.campaign.clear(),
       digiDb.miniGameRuns.clear(),
+      digiDb.rivalRuns.clear(),
     ]);
   }
 }

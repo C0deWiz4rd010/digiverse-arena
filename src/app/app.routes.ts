@@ -41,6 +41,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game/game-pages').then((m) => m.RandomBattlePage),
   },
   {
+    path: 'rivals',
+    loadComponent: () => import('./features/game/rivals-page').then((m) => m.RivalsPage),
+  },
+  {
     path: 'minigames',
     loadComponent: () => import('./features/game/minigames-page').then((m) => m.MiniGamesPage),
   },

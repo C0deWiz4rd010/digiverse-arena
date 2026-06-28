@@ -13,7 +13,8 @@ export type QuestObjectiveKind =
   | 'skill'
   | 'evolution'
   | 'minigame'
-  | 'nexus';
+  | 'nexus'
+  | 'rival';
 
 export interface QuestObjective {
   kind: QuestObjectiveKind;
@@ -42,6 +43,7 @@ export interface CampaignState {
   favoriteDigimonIds: number[];
   completedMiniGames: string[];
   rivalDigimonId: number;
+  defeatedRivalIds: number[];
   updatedAt: number;
 }
 
@@ -53,6 +55,7 @@ export interface CampaignFacts {
   tournaments: number;
   notes: number;
   miniGames: number;
+  rivals: number;
   masteryTotal: number;
 }
 
@@ -151,6 +154,7 @@ export function defaultCampaignState(seed = dayIndex()): CampaignState {
     favoriteDigimonIds: [],
     completedMiniGames: [],
     rivalDigimonId: 1 + seededIndex(seed + 13, 1488),
+    defeatedRivalIds: [],
     updatedAt: Date.now(),
   };
 }
@@ -186,6 +190,16 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
       objectives: [objective('arena', 'battle', 1, baseFacts.battles, 'Finish 1 Arena or Random Battle.')],
       rewardBits: 42,
       rewardMastery: 9,
+      status: 'active',
+    },
+    {
+      id: `rival-${seed}`,
+      title: 'Rival Signal Bounty',
+      track: 'tactics',
+      description: 'Scout the daily rival, call the counter lane and resolve the bounty duel.',
+      objectives: [objective('rival', 'bounty', 1, baseFacts.rivals, 'Clear 1 Rival Signal bounty.')],
+      rewardBits: 46,
+      rewardMastery: 10,
       status: 'active',
     },
     {
@@ -260,9 +274,9 @@ export function dailyEncounters(seed = dayIndex()): EncounterDefinition[] {
       id: 'rival-call',
       trigger: 'rival',
       headline: 'Rival Call',
-      detail: 'A rival signal is tracking your strongest recent team. Build a counter before entering Arena.',
-      actionLabel: 'Build counter',
-      route: '/team-builder',
+      detail: 'A rival signal is tracking your strongest recent team. Scout the counter lane and claim the bounty.',
+      actionLabel: 'Open Rival Signal',
+      route: '/rivals',
       rewardBits: 36,
       risk: 'sharp',
     },
@@ -339,6 +353,7 @@ function normalizeFacts(facts: Partial<CampaignFacts>): CampaignFacts {
     tournaments: facts.tournaments ?? 0,
     notes: facts.notes ?? 0,
     miniGames: facts.miniGames ?? 0,
+    rivals: facts.rivals ?? 0,
     masteryTotal: facts.masteryTotal ?? 0,
   };
 }

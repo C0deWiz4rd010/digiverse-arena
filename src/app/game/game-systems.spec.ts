@@ -14,6 +14,10 @@ import {
   levelTier,
   miniGameChallenge,
   questCompletion,
+  createRivalSignal,
+  rivalScoreLine,
+  rivalWinRate,
+  runRivalDuel,
   runTournament,
   scoreTeam,
   simulateBattle,
@@ -171,6 +175,7 @@ describe('campaign, ideas and mini-games', () => {
       tournaments: 0,
       notes: 1,
       miniGames: 1,
+      rivals: 1,
       masteryTotal: 40,
     });
     expect(quests.every((quest) => quest.status === 'claimable')).toBe(true);
@@ -197,6 +202,27 @@ describe('campaign, ideas and mini-games', () => {
     expect(challenge.choices).toContain(challenge.answer);
     expect(challenge.rewardBits).toBeGreaterThan(0);
     expect(miniGameChallenge('attribute-clash', pool, 9).answer).toBe('Vaccine');
+  });
+});
+
+describe('rival signal system', () => {
+  it('creates a deterministic rival signal with a valid counter lane', () => {
+    const signal = createRivalSignal(devimon, 77);
+    expect(signal.rivalName).toBe('Devimon');
+    expect(signal.counterAttribute).toBe('Vaccine');
+    expect(signal.scoutChoices).toContain(signal.scoutAnswer);
+    expect(signal.phases).toHaveLength(3);
+    expect(rivalScoreLine(signal)).toContain('threat');
+  });
+
+  it('runs and scores a rival duel', () => {
+    const signal = createRivalSignal(devimon, 88);
+    const duel = runRivalDuel(signal, [agumon, gabumon, greymon], [devimon, greymon], signal.counterAttribute);
+    expect(['clear', 'escaped', 'standoff']).toContain(duel.outcome);
+    expect(duel.counterCorrect).toBe(true);
+    expect(duel.result.events.at(-1)?.type).toBe('battle-end');
+    expect(duel.rewardBits).toBeGreaterThan(0);
+    expect(rivalWinRate([{ outcome: 'clear' }, { outcome: 'escaped' }])).toBe(50);
   });
 });
 

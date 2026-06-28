@@ -83,6 +83,17 @@ export interface MiniGameRunRecord {
   createdAt: number;
 }
 
+export interface RivalRunRecord {
+  id: string;
+  rivalId: number;
+  rivalName: string;
+  outcome: 'clear' | 'escaped' | 'standoff';
+  counterAttribute: string;
+  rewardBits: number;
+  recap: string;
+  createdAt: number;
+}
+
 /**
  * IndexedDB cache for DAPI data. Keeps Digimon details and metadata lists locally so the
  * app stays fast and partially works offline. User-owned data (favorites, teams, history)
@@ -100,6 +111,7 @@ export class DigiDb extends Dexie {
   notes!: Table<DigimonNoteRecord, number>;
   campaign!: Table<CampaignRecord, string>;
   miniGameRuns!: Table<MiniGameRunRecord, string>;
+  rivalRuns!: Table<RivalRunRecord, string>;
 
   constructor() {
     super('digiverse-arena');
@@ -128,6 +140,20 @@ export class DigiDb extends Dexie {
       notes: 'digimonId, updatedAt',
       campaign: 'id, updatedAt',
       miniGameRuns: 'id, gameId, result, createdAt',
+    });
+    this.version(4).stores({
+      digimon: 'id, cachedAt',
+      meta: 'resource, cachedAt',
+      teams: 'id, updatedAt, score',
+      battles: 'id, createdAt, mode, winner',
+      tournaments: 'id, tournamentId, status, updatedAt',
+      mastery: 'id, updatedAt',
+      settings: 'id',
+      favorites: 'id, createdAt',
+      notes: 'digimonId, updatedAt',
+      campaign: 'id, updatedAt',
+      miniGameRuns: 'id, gameId, result, createdAt',
+      rivalRuns: 'id, rivalId, outcome, createdAt',
     });
   }
 }

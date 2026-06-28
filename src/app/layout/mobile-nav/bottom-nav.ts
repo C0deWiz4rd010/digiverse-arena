@@ -78,7 +78,7 @@ export class BottomNav {
     { path: '/', label: 'Home', icon: 'HM' },
     { path: '/dex', label: 'Dex', icon: 'DX' },
     { path: '/arena', label: 'Arena', icon: 'AR' },
-    { path: '/team-builder', label: 'Team', icon: 'TM' },
+    { path: '/rivals', label: 'Rival', icon: 'RV' },
     { path: '/minigames', label: 'Mini', icon: 'MG' },
   ];
 }

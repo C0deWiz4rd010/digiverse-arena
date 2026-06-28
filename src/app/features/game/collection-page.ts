@@ -14,7 +14,7 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
       <header class="page-head">
         <p class="eyebrow">// Collection</p>
         <h2>Local command archive</h2>
-        <p class="lead">Favorites, notes, teams, battle history, tournaments, mini-games and DigiCore Mastery stay on this device.</p>
+        <p class="lead">Favorites, notes, teams, battle history, tournaments, rival bounties, mini-games and DigiCore Mastery stay on this device.</p>
       </header>
 
       <div class="metric-grid">
@@ -91,6 +91,16 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
         </article>
 
         <article class="panel">
+          <h3>Rival Bounties</h3>
+          @for (run of rivalRuns(); track run.id) {
+            <p class="muted">{{ run.rivalName }} - {{ run.outcome }} - {{ run.rewardBits }} bits - {{ run.counterAttribute }}</p>
+          } @empty {
+            <p class="muted">No rival bounties yet.</p>
+          }
+          <a class="btn" routerLink="/rivals">Open Rival Signal</a>
+        </article>
+
+        <article class="panel">
           <h3>Mini-Games</h3>
           @for (run of miniGameRuns(); track run.id) {
             <p class="muted">{{ run.gameId }} - {{ run.result }} - {{ run.rewardBits }} bits</p>
@@ -111,6 +121,7 @@ export class CollectionPage {
   protected readonly teams = signal<Awaited<ReturnType<GameProgressRepository['listTeams']>>>([]);
   protected readonly battles = signal<Awaited<ReturnType<GameProgressRepository['listBattles']>>>([]);
   protected readonly tournaments = signal<Awaited<ReturnType<GameProgressRepository['listTournaments']>>>([]);
+  protected readonly rivalRuns = signal<Awaited<ReturnType<GameProgressRepository['listRivalRuns']>>>([]);
   protected readonly miniGameRuns = signal<Awaited<ReturnType<GameProgressRepository['listMiniGameRuns']>>>([]);
   protected readonly quests = signal<DigiCoreQuest[]>([]);
   protected readonly masteryEntries = signal<{ label: string; value: number }[]>([]);
@@ -134,12 +145,13 @@ export class CollectionPage {
   }
 
   private async load(): Promise<void> {
-    const [favorites, notes, teams, battles, tournaments, miniGameRuns, quests, mastery] = await Promise.all([
+    const [favorites, notes, teams, battles, tournaments, rivalRuns, miniGameRuns, quests, mastery] = await Promise.all([
       this.progress.listFavorites(),
       this.progress.listNotes(),
       this.progress.listTeams(),
       this.progress.listBattles(),
       this.progress.listTournaments(),
+      this.progress.listRivalRuns(),
       this.progress.listMiniGameRuns(),
       this.progress.dailyQuestBoard(),
       this.progress.mastery(),
@@ -149,6 +161,7 @@ export class CollectionPage {
     this.teams.set(teams);
     this.battles.set(battles);
     this.tournaments.set(tournaments);
+    this.rivalRuns.set(rivalRuns);
     this.miniGameRuns.set(miniGameRuns);
     this.quests.set(quests);
     this.masteryEntries.set(Object.entries(mastery.tracks).map(([label, value]) => ({ label, value })));

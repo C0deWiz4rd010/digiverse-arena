@@ -980,6 +980,98 @@
   background: rgba(53, 255, 158, 0.08);
 }
 
+.rival-page {
+  --rival-line: rgba(255, 59, 107, 0.5);
+}
+
+.rival-hero {
+  border-color: rgba(255, 59, 107, 0.32);
+}
+
+.rival-theater,
+.rival-result {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+  border: 1px solid var(--rival-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 59, 107, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(255, 183, 3, 0.09), rgba(55, 243, 255, 0.08)),
+    rgba(7, 16, 29, 0.84);
+  overflow: hidden;
+}
+
+.rival-theater--clear,
+.rival-result--clear {
+  border-color: rgba(53, 255, 158, 0.62);
+}
+
+.rival-theater__image {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 59, 107, 0.22), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.rival-theater__image img {
+  position: relative;
+  z-index: 1;
+  width: min(240px, 84%);
+  height: 240px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.48));
+}
+
+.rival-threat {
+  position: absolute;
+  inset: var(--space-3) var(--space-3) auto auto;
+  border: 1px solid rgba(255, 59, 107, 0.48);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(255, 59, 107, 0.13);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rival-theater__body,
+.rival-result {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.rival-mutators,
+.rival-roster {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.rival-mutators {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.rival-mutators span {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.rival-roster {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
@@ -1061,7 +1153,9 @@
   .tournament-broadcast,
   .reward-draft,
   .prediction-slip,
-  .mini-theater {
+  .mini-theater,
+  .rival-theater,
+  .rival-result {
     grid-template-columns: 1fr;
   }
 
