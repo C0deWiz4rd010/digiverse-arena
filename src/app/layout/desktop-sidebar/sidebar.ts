@@ -74,6 +74,7 @@ export class Sidebar {
     { path: '/dex', label: 'DigiDex', icon: 'DX' },
     { path: '/evolution-lab', label: 'Evolution Lab', icon: 'EV' },
     { path: '/fields', label: 'Fields', icon: 'FD' },
+    { path: '/expeditions', label: 'Expeditions', icon: 'EX' },
     { path: '/skills', label: 'Skills', icon: 'SK' },
     { path: '/team-builder', label: 'Team Builder', icon: 'TM' },
     { path: '/nexus', label: 'Nexus Lab', icon: 'NX' },

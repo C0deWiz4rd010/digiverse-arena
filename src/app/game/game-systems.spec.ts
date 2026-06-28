@@ -9,6 +9,9 @@ import {
   defaultCampaignState,
   defaultDigiCoreProfile,
   deriveStats,
+  createFieldExpeditions,
+  expeditionTeamFit,
+  expeditionWinRate,
   generateNexusContracts,
   ideaForDigimon,
   levelTier,
@@ -18,6 +21,7 @@ import {
   rivalScoreLine,
   rivalWinRate,
   runRivalDuel,
+  runFieldExpedition,
   runTournament,
   scoreTeam,
   simulateBattle,
@@ -176,6 +180,7 @@ describe('campaign, ideas and mini-games', () => {
       notes: 1,
       miniGames: 1,
       rivals: 1,
+      expeditions: 1,
       masteryTotal: 40,
     });
     expect(quests.every((quest) => quest.status === 'claimable')).toBe(true);
@@ -223,6 +228,33 @@ describe('rival signal system', () => {
     expect(duel.result.events.at(-1)?.type).toBe('battle-end');
     expect(duel.rewardBits).toBeGreaterThan(0);
     expect(rivalWinRate([{ outcome: 'clear' }, { outcome: 'escaped' }])).toBe(50);
+  });
+});
+
+describe('field expedition system', () => {
+  it('creates field missions from DAPI field metadata', () => {
+    const missions = createFieldExpeditions(
+      [
+        { id: 1, name: 'Dragon Roar' },
+        { id: 2, name: 'Nightmare Soldiers' },
+        { id: 3, name: 'Nature Spirits' },
+      ],
+      12,
+    );
+    expect(missions.length).toBeGreaterThanOrEqual(3);
+    expect(missions[0].rewardBits).toBeGreaterThan(0);
+    expect(missions[0].tags).toContain(missions[0].fieldName);
+  });
+
+  it('scores and resolves expeditions with discoveries', () => {
+    const mission = createFieldExpeditions([{ id: 1, name: 'Dragon Roar' }], 4)[0];
+    const fit = expeditionTeamFit(mission, [agumon, gabumon, greymon]);
+    const result = runFieldExpedition(mission, [agumon, gabumon, greymon], 44);
+    expect(fit.total).toBeGreaterThan(0);
+    expect(['complete', 'partial', 'lost']).toContain(result.outcome);
+    expect(result.discoveries.length).toBeGreaterThan(0);
+    expect(result.rewardBits).toBeGreaterThan(0);
+    expect(expeditionWinRate([{ outcome: 'complete' }, { outcome: 'partial' }])).toBe(50);
   });
 });
 

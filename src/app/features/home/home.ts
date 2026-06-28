@@ -59,6 +59,7 @@ export class Home {
     { label: 'Random Digimon', icon: 'RD', action: () => void this.randomDigimon() },
     { label: 'Random Battle', icon: 'RB', action: () => this.go('/random-battle') },
     { label: 'Rival Signal', icon: 'RV', action: () => this.go('/rivals') },
+    { label: 'Field Ops', icon: 'EX', action: () => this.go('/expeditions') },
     { label: 'Build Team', icon: 'TM', action: () => this.go('/team-builder') },
     { label: 'Mini-Games', icon: 'MG', action: () => this.go('/minigames') },
     { label: 'Nexus Lab', icon: 'NX', action: () => this.go('/nexus') },

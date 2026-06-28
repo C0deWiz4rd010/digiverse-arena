@@ -1072,6 +1072,123 @@
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
 }
 
+.expedition-page {
+  --expedition-line: rgba(53, 255, 158, 0.48);
+}
+
+.expedition-hero {
+  border-color: rgba(53, 255, 158, 0.3);
+}
+
+.expedition-grid,
+.expedition-roster {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.expedition-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.expedition-card {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 180px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.055);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expedition-card strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.expedition-card span:not(.chip):not(.eyebrow) {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.expedition-card--selected {
+  border-color: var(--expedition-line);
+  box-shadow: 0 0 22px rgba(53, 255, 158, 0.14);
+}
+
+.expedition-card--volatile {
+  border-color: rgba(255, 183, 3, 0.5);
+}
+
+.expedition-theater,
+.expedition-result {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+  border: 1px solid var(--expedition-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(53, 255, 158, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(55, 243, 255, 0.08), rgba(255, 183, 3, 0.07)),
+    rgba(7, 16, 29, 0.84);
+  overflow: hidden;
+}
+
+.expedition-theater--complete,
+.expedition-result--complete {
+  border-color: rgba(55, 243, 255, 0.58);
+}
+
+.expedition-map {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 250px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(rgba(53, 255, 158, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 255, 158, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 50% 48%, rgba(53, 255, 158, 0.22), transparent 44%),
+    rgba(255, 255, 255, 0.045);
+  background-size: 28px 28px, 28px 28px, auto, auto;
+  overflow: hidden;
+}
+
+.expedition-map > span {
+  position: relative;
+  z-index: 1;
+  max-width: 14rem;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  text-align: center;
+}
+
+.expedition-map__rings {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(53, 255, 158, 0.35);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 28px rgba(53, 255, 158, 0.04),
+    0 0 0 58px rgba(55, 243, 255, 0.035);
+}
+
+.expedition-theater__body,
+.expedition-result {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.expedition-roster {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
@@ -1155,7 +1272,9 @@
   .prediction-slip,
   .mini-theater,
   .rival-theater,
-  .rival-result {
+  .rival-result,
+  .expedition-theater,
+  .expedition-result {
     grid-template-columns: 1fr;
   }
 
@@ -1193,6 +1312,10 @@
 
   .mini-pulse {
     animation: mini-pulse 3.4s ease-in-out infinite;
+  }
+
+  .expedition-map__rings {
+    animation: mini-pulse 3.8s ease-in-out infinite;
   }
 }
 

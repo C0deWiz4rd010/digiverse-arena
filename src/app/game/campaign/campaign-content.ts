@@ -10,6 +10,7 @@ export type QuestObjectiveKind =
   | 'arena'
   | 'tournament'
   | 'field'
+  | 'expedition'
   | 'skill'
   | 'evolution'
   | 'minigame'
@@ -44,6 +45,7 @@ export interface CampaignState {
   completedMiniGames: string[];
   rivalDigimonId: number;
   defeatedRivalIds: number[];
+  exploredFieldNames: string[];
   updatedAt: number;
 }
 
@@ -56,6 +58,7 @@ export interface CampaignFacts {
   notes: number;
   miniGames: number;
   rivals: number;
+  expeditions: number;
   masteryTotal: number;
 }
 
@@ -155,6 +158,7 @@ export function defaultCampaignState(seed = dayIndex()): CampaignState {
     completedMiniGames: [],
     rivalDigimonId: 1 + seededIndex(seed + 13, 1488),
     defeatedRivalIds: [],
+    exploredFieldNames: [],
     updatedAt: Date.now(),
   };
 }
@@ -213,6 +217,16 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
       ],
       rewardBits: 28,
       rewardMastery: 6,
+      status: 'active',
+    },
+    {
+      id: `field-${seed}`,
+      title: 'Field Expedition Route',
+      track: 'field',
+      description: 'Run a Field Ops route and archive a discovery from the DAPI biome map.',
+      objectives: [objective('expedition', 'field-route', 1, baseFacts.expeditions, 'Complete or recover 1 Field Expedition.')],
+      rewardBits: 38,
+      rewardMastery: 9,
       status: 'active',
     },
     {
@@ -284,9 +298,9 @@ export function dailyEncounters(seed = dayIndex()): EncounterDefinition[] {
       id: 'field-storm',
       trigger: 'field',
       headline: 'Field Storm',
-      detail: 'A Field route is unstable. Explore Field data, then take a matching team into battle.',
-      actionLabel: 'Explore fields',
-      route: '/fields',
+      detail: 'A Field route is unstable. Run Field Ops, recover discoveries and take a matching team into battle.',
+      actionLabel: 'Open Field Ops',
+      route: '/expeditions',
       rewardBits: 30,
       risk: 'calm',
     },
@@ -354,6 +368,7 @@ function normalizeFacts(facts: Partial<CampaignFacts>): CampaignFacts {
     notes: facts.notes ?? 0,
     miniGames: facts.miniGames ?? 0,
     rivals: facts.rivals ?? 0,
+    expeditions: facts.expeditions ?? 0,
     masteryTotal: facts.masteryTotal ?? 0,
   };
 }

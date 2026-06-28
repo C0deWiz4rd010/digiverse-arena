@@ -467,12 +467,16 @@ export class EvolutionLabPage {
 @Component({
   selector: 'app-field-explorer',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
     <section class="page">
       <header class="page-head">
         <p class="eyebrow">// Field Explorer</p>
         <h2>Biome-aware battle planning</h2>
         <p class="lead">Fields become arena modifiers, team cohesion hooks and DigiCore cartography progress.</p>
+        <div class="action-row">
+          <a class="btn btn--primary" routerLink="/expeditions">Open Field Ops</a>
+        </div>
       </header>
       <div class="encounter-strip">
         @for (encounter of encounters(); track encounter.id) {
@@ -1370,7 +1374,7 @@ export class CollectionPage {
         </article>
         <article class="panel">
           <h3>User Data</h3>
-          <p class="muted">Clears favorites, notes, teams, battles, tournaments, rival bounties, mini-games, settings and DigiCore mastery.</p>
+          <p class="muted">Clears favorites, notes, teams, battles, tournaments, field expeditions, rival bounties, mini-games, settings and DigiCore mastery.</p>
           <button class="btn btn--accent" type="button" (click)="clearUserData()">Clear local game data</button>
         </article>
       </div>

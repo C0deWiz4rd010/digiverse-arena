@@ -1,6 +1,7 @@
 export * from './arena/arena-content';
 export * from './battle-engine/battle-engine';
 export * from './campaign/campaign-content';
+export * from './field/field-expedition';
 export * from './mastery/digicore-mastery';
 export * from './nexus/digilink-nexus';
 export * from './rivals/rival-system';

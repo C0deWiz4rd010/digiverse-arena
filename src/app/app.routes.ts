@@ -20,6 +20,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game/game-pages').then((m) => m.FieldExplorerPage),
   },
   {
+    path: 'expeditions',
+    loadComponent: () => import('./features/game/expeditions-page').then((m) => m.ExpeditionsPage),
+  },
+  {
     path: 'skills',
     loadComponent: () => import('./features/game/game-pages').then((m) => m.SkillLibraryPage),
   },
