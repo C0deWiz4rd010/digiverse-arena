@@ -530,12 +530,13 @@ export class FieldExplorerPage {
       <div class="toolbar">
         <input class="input" type="search" placeholder="Filter skills" [value]="query()" (input)="query.set($any($event.target).value)" />
         <button class="btn btn--primary" type="button" (click)="train()">Analyze visible skills</button>
+        <a class="btn btn--accent" routerLink="/skill-forge">Open Skill Forge</a>
         <a class="btn" routerLink="/minigames">Open Skill Match</a>
       </div>
       <article class="panel idea-card">
         <p class="eyebrow">Skill Forge</p>
-        <h3>Read tags, then prove the read in the Arcade.</h3>
-        <p class="lead">Every Skill Match result writes local mastery and pushes the daily Mini-Game Pulse quest.</p>
+        <h3>Read tags, then forge a real combo chain.</h3>
+        <p class="lead">Skill Forge trains role fit, tag match, accuracy and power before Arena, Rival Signal or Tournament pressure.</p>
       </article>
       <div class="grid">
         @for (skill of filtered(); track skill.id) {
@@ -1374,7 +1375,7 @@ export class CollectionPage {
         </article>
         <article class="panel">
           <h3>User Data</h3>
-          <p class="muted">Clears favorites, notes, teams, battles, tournaments, field expeditions, rival bounties, mini-games, settings and DigiCore mastery.</p>
+          <p class="muted">Clears favorites, notes, teams, battles, tournaments, field expeditions, skill forge runs, rival bounties, mini-games, settings and DigiCore mastery.</p>
           <button class="btn btn--accent" type="button" (click)="clearUserData()">Clear local game data</button>
         </article>
       </div>

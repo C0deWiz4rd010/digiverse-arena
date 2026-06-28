@@ -1189,6 +1189,122 @@
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
 }
 
+.forge-page {
+  --forge-line: rgba(139, 92, 246, 0.5);
+}
+
+.forge-hero {
+  border-color: rgba(139, 92, 246, 0.34);
+}
+
+.forge-grid,
+.forge-roster {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.forge-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.forge-card {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 180px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.055);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.forge-card strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.forge-card span:not(.chip):not(.eyebrow) {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.forge-card--selected {
+  border-color: var(--forge-line);
+  box-shadow: 0 0 22px rgba(139, 92, 246, 0.16);
+}
+
+.forge-card--high {
+  border-color: rgba(255, 183, 3, 0.5);
+}
+
+.forge-theater,
+.forge-result {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+  border: 1px solid var(--forge-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(139, 92, 246, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(55, 243, 255, 0.08), rgba(255, 183, 3, 0.07)),
+    rgba(7, 16, 29, 0.84);
+  overflow: hidden;
+}
+
+.forge-theater--perfect,
+.forge-result--perfect {
+  border-color: rgba(53, 255, 158, 0.62);
+}
+
+.forge-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 250px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 50% 48%, rgba(139, 92, 246, 0.24), transparent 44%),
+    linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(55, 243, 255, 0.05)),
+    rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+}
+
+.forge-core > span {
+  position: relative;
+  z-index: 1;
+  max-width: 15rem;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.5vw, 2.4rem);
+  text-align: center;
+}
+
+.forge-core__rings {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(139, 92, 246, 0.38);
+  border-radius: 28%;
+  box-shadow:
+    0 0 0 28px rgba(139, 92, 246, 0.045),
+    0 0 0 58px rgba(55, 243, 255, 0.035);
+  transform: rotate(45deg);
+}
+
+.forge-theater__body,
+.forge-result {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.forge-roster {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
@@ -1274,7 +1390,9 @@
   .rival-theater,
   .rival-result,
   .expedition-theater,
-  .expedition-result {
+  .expedition-result,
+  .forge-theater,
+  .forge-result {
     grid-template-columns: 1fr;
   }
 
@@ -1316,6 +1434,10 @@
 
   .expedition-map__rings {
     animation: mini-pulse 3.8s ease-in-out infinite;
+  }
+
+  .forge-core__rings {
+    animation: forge-spin 7s linear infinite;
   }
 }
 
@@ -1363,5 +1485,14 @@
   50% {
     opacity: 1;
     transform: scale(1.12);
+  }
+}
+
+@keyframes forge-spin {
+  from {
+    transform: rotate(0deg) scale(0.92);
+  }
+  to {
+    transform: rotate(360deg) scale(0.92);
   }
 }

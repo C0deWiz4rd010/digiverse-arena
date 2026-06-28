@@ -5,6 +5,7 @@ export * from './field/field-expedition';
 export * from './mastery/digicore-mastery';
 export * from './nexus/digilink-nexus';
 export * from './rivals/rival-system';
+export * from './skills/skill-forge';
 export * from './stats/battle-stats';
 export * from './team/team-builder';
 export * from './tournaments/tournament-content';

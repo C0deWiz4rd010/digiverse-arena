@@ -9,12 +9,14 @@ import {
   type MiniGameRunRecord,
   type RivalRunRecord,
   type SavedTeamRecord,
+  type SkillForgeRunRecord,
   type TournamentHistoryRecord,
 } from '../cache/digi-db';
 import type { DigiCoreQuest, CampaignFacts, CampaignState } from '../../game/campaign/campaign-content';
 import { dailyQuests, defaultCampaignState } from '../../game/campaign/campaign-content';
 import type { FieldExpeditionResult } from '../../game/field/field-expedition';
 import type { RivalDuelResult } from '../../game/rivals/rival-system';
+import type { SkillForgeResult } from '../../game/skills/skill-forge';
 import {
   applyMasteryEvent,
   defaultDigiCoreProfile,
@@ -154,6 +156,7 @@ export class GameProgressRepository {
         ...state,
         favoriteDigimonIds: state.favoriteDigimonIds ?? [],
         completedMiniGames: state.completedMiniGames ?? [],
+        completedSkillForgeIds: state.completedSkillForgeIds ?? [],
         defeatedRivalIds: state.defeatedRivalIds ?? [],
         exploredFieldNames: state.exploredFieldNames ?? [],
       };
@@ -162,6 +165,7 @@ export class GameProgressRepository {
         ...defaultCampaignState(today),
         favoriteDigimonIds: normalizedState.favoriteDigimonIds,
         completedMiniGames: normalizedState.completedMiniGames,
+        completedSkillForgeIds: normalizedState.completedSkillForgeIds,
         defeatedRivalIds: normalizedState.defeatedRivalIds,
         exploredFieldNames: normalizedState.exploredFieldNames,
       };
@@ -179,7 +183,7 @@ export class GameProgressRepository {
   }
 
   async campaignFacts(): Promise<CampaignFacts> {
-    const [scans, favorites, teams, battles, tournaments, notes, miniGameRuns, rivalRuns, expeditionRuns, mastery] = await Promise.all([
+    const [scans, favorites, teams, battles, tournaments, notes, miniGameRuns, rivalRuns, expeditionRuns, skillForgeRuns, mastery] = await Promise.all([
       digiDb.digimon.count().catch(() => 0),
       digiDb.favorites.count().catch(() => 0),
       digiDb.teams.count().catch(() => 0),
@@ -189,6 +193,7 @@ export class GameProgressRepository {
       digiDb.miniGameRuns.toArray().catch(() => [] as MiniGameRunRecord[]),
       digiDb.rivalRuns.toArray().catch(() => [] as RivalRunRecord[]),
       digiDb.expeditionRuns.toArray().catch(() => [] as ExpeditionRunRecord[]),
+      digiDb.skillForgeRuns.toArray().catch(() => [] as SkillForgeRunRecord[]),
       this.mastery(),
     ]);
     return {
@@ -201,6 +206,7 @@ export class GameProgressRepository {
       miniGames: miniGameRuns.filter((run) => run.result === 'win').length,
       rivals: rivalRuns.filter((run) => run.outcome === 'clear').length,
       expeditions: expeditionRuns.filter((run) => run.outcome === 'complete' || run.outcome === 'partial').length,
+      skillForges: skillForgeRuns.filter((run) => run.outcome === 'perfect' || run.outcome === 'stable').length,
       masteryTotal: totalMastery(mastery),
     };
   }
@@ -232,6 +238,36 @@ export class GameProgressRepository {
 
   async listExpeditionRuns(limit = 12): Promise<ExpeditionRunRecord[]> {
     return digiDb.expeditionRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async listSkillForgeRuns(limit = 12): Promise<SkillForgeRunRecord[]> {
+    return digiDb.skillForgeRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async saveSkillForgeRun(result: SkillForgeResult): Promise<void> {
+    await digiDb.skillForgeRuns.put({
+      id: `forge-${Date.now()}-${Math.round(Math.random() * 9999)}`,
+      programId: result.program.id,
+      programTitle: result.program.title,
+      outcome: result.outcome,
+      score: result.score,
+      rewardBits: result.rewardBits,
+      comboChain: result.comboChain,
+      recap: result.recap,
+      createdAt: Date.now(),
+    });
+    if (result.outcome === 'perfect' || result.outcome === 'stable') {
+      const state = await this.campaignState();
+      await this.saveCampaignState({
+        ...state,
+        completedSkillForgeIds: [...new Set([...(state.completedSkillForgeIds ?? []), result.program.id])],
+      });
+    }
+    await this.applyMastery({
+      track: result.masteryTrack,
+      amount: result.masteryAmount,
+      reason: `Skill Forge ${result.program.title}`,
+    });
   }
 
   async saveExpeditionRun(result: FieldExpeditionResult): Promise<void> {
@@ -325,6 +361,7 @@ export class GameProgressRepository {
       digiDb.miniGameRuns.clear(),
       digiDb.rivalRuns.clear(),
       digiDb.expeditionRuns.clear(),
+      digiDb.skillForgeRuns.clear(),
     ]);
   }
 }

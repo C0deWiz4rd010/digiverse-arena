@@ -10,6 +10,7 @@ import {
   defaultDigiCoreProfile,
   deriveStats,
   createFieldExpeditions,
+  createSkillForgePrograms,
   expeditionTeamFit,
   expeditionWinRate,
   generateNexusContracts,
@@ -23,7 +24,10 @@ import {
   runRivalDuel,
   runFieldExpedition,
   runTournament,
+  runSkillForge,
   scoreTeam,
+  skillComboFit,
+  skillForgeWinRate,
   simulateBattle,
   statTotal,
 } from '.';
@@ -181,6 +185,7 @@ describe('campaign, ideas and mini-games', () => {
       miniGames: 1,
       rivals: 1,
       expeditions: 1,
+      skillForges: 1,
       masteryTotal: 40,
     });
     expect(quests.every((quest) => quest.status === 'claimable')).toBe(true);
@@ -255,6 +260,33 @@ describe('field expedition system', () => {
     expect(result.discoveries.length).toBeGreaterThan(0);
     expect(result.rewardBits).toBeGreaterThan(0);
     expect(expeditionWinRate([{ outcome: 'complete' }, { outcome: 'partial' }])).toBe(50);
+  });
+});
+
+describe('skill forge system', () => {
+  it('creates skill forge programs from DAPI skill metadata', () => {
+    const programs = createSkillForgePrograms(
+      [
+        { id: 1, name: 'Baby Flame' },
+        { id: 2, name: 'Death Claw' },
+        { id: 3, name: 'Mega Flame' },
+      ],
+      22,
+    );
+    expect(programs).toHaveLength(6);
+    expect(programs[0].rewardBits).toBeGreaterThan(0);
+    expect(programs[0].tags).toContain(programs[0].targetTag);
+  });
+
+  it('scores and resolves skill forge drills with combo chains', () => {
+    const program = createSkillForgePrograms([{ id: 1, name: 'Baby Flame' }], 5)[0];
+    const fit = skillComboFit(program, [agumon, gabumon, greymon]);
+    const result = runSkillForge(program, [agumon, gabumon, greymon], 55);
+    expect(fit.total).toBeGreaterThan(0);
+    expect(['perfect', 'stable', 'fizzle']).toContain(result.outcome);
+    expect(result.comboChain.length).toBeGreaterThan(0);
+    expect(result.rewardBits).toBeGreaterThan(0);
+    expect(skillForgeWinRate([{ outcome: 'perfect' }, { outcome: 'fizzle' }])).toBe(50);
   });
 });
 

@@ -28,6 +28,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game/game-pages').then((m) => m.SkillLibraryPage),
   },
   {
+    path: 'skill-forge',
+    loadComponent: () => import('./features/game/skill-forge-page').then((m) => m.SkillForgePage),
+  },
+  {
     path: 'team-builder',
     loadComponent: () => import('./features/game/game-pages').then((m) => m.TeamBuilderPage),
   },

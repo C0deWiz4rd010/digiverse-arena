@@ -11,6 +11,7 @@ export type QuestObjectiveKind =
   | 'tournament'
   | 'field'
   | 'expedition'
+  | 'forge'
   | 'skill'
   | 'evolution'
   | 'minigame'
@@ -43,6 +44,7 @@ export interface CampaignState {
   claimedQuestIds: string[];
   favoriteDigimonIds: number[];
   completedMiniGames: string[];
+  completedSkillForgeIds: string[];
   rivalDigimonId: number;
   defeatedRivalIds: number[];
   exploredFieldNames: string[];
@@ -59,6 +61,7 @@ export interface CampaignFacts {
   miniGames: number;
   rivals: number;
   expeditions: number;
+  skillForges: number;
   masteryTotal: number;
 }
 
@@ -156,6 +159,7 @@ export function defaultCampaignState(seed = dayIndex()): CampaignState {
     claimedQuestIds: [],
     favoriteDigimonIds: [],
     completedMiniGames: [],
+    completedSkillForgeIds: [],
     rivalDigimonId: 1 + seededIndex(seed + 13, 1488),
     defeatedRivalIds: [],
     exploredFieldNames: [],
@@ -239,6 +243,16 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
       rewardMastery: 7,
       status: 'active',
     },
+    {
+      id: `forge-${seed}`,
+      title: 'Skill Forge Chain',
+      track: 'skill',
+      description: 'Run one Skill Forge drill and archive the combo chain.',
+      objectives: [objective('forge', 'skill-chain', 1, baseFacts.skillForges, 'Complete 1 Skill Forge drill.')],
+      rewardBits: 36,
+      rewardMastery: 9,
+      status: 'active',
+    },
   ];
   return quests.map((quest) => ({ ...quest, status: questStatus(quest) }));
 }
@@ -308,9 +322,9 @@ export function dailyEncounters(seed = dayIndex()): EncounterDefinition[] {
       id: 'skill-bounty',
       trigger: 'skill',
       headline: 'Skill Bounty',
-      detail: 'The Skill Library surfaced a finisher clue. Read tags and find a strong user.',
-      actionLabel: 'Open skills',
-      route: '/skills',
+      detail: 'The Skill Library surfaced a finisher clue. Forge a combo chain and train the matching role.',
+      actionLabel: 'Open Skill Forge',
+      route: '/skill-forge',
       rewardBits: 26,
       risk: 'calm',
     },
@@ -369,6 +383,7 @@ function normalizeFacts(facts: Partial<CampaignFacts>): CampaignFacts {
     miniGames: facts.miniGames ?? 0,
     rivals: facts.rivals ?? 0,
     expeditions: facts.expeditions ?? 0,
+    skillForges: facts.skillForges ?? 0,
     masteryTotal: facts.masteryTotal ?? 0,
   };
 }
