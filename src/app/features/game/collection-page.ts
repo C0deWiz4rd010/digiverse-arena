@@ -14,7 +14,7 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
       <header class="page-head">
         <p class="eyebrow">// Collection</p>
         <h2>Local command archive</h2>
-        <p class="lead">Favorites, notes, teams, Squad Lab drills, battle history, tournaments, field expeditions, skill forge runs, rival bounties, mini-games and DigiCore Mastery stay on this device.</p>
+        <p class="lead">Favorites, notes, teams, Squad Lab drills, Scouter Duels, battle history, tournaments, field expeditions, skill forge runs, rival bounties, mini-games and DigiCore Mastery stay on this device.</p>
       </header>
 
       <div class="metric-grid">
@@ -80,6 +80,16 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
             <p class="muted">No Squad Lab drills yet.</p>
           }
           <a class="btn" routerLink="/team-builder">Open Squad Lab</a>
+        </article>
+
+        <article class="panel">
+          <h3>Scouter Duels</h3>
+          @for (run of scouterDuelRuns(); track run.id) {
+            <p class="muted">{{ run.scenarioTitle }} - {{ run.outcome }} - {{ run.predictedName }} vs winner {{ run.winnerName }} - {{ run.rewardBits }} bits</p>
+          } @empty {
+            <p class="muted">No Scouter Duel reads yet.</p>
+          }
+          <a class="btn" routerLink="/compare">Open Scouter Duel</a>
         </article>
 
         <article class="panel">
@@ -155,6 +165,7 @@ export class CollectionPage {
   protected readonly expeditionRuns = signal<Awaited<ReturnType<GameProgressRepository['listExpeditionRuns']>>>([]);
   protected readonly skillForgeRuns = signal<Awaited<ReturnType<GameProgressRepository['listSkillForgeRuns']>>>([]);
   protected readonly squadDrillRuns = signal<Awaited<ReturnType<GameProgressRepository['listSquadDrillRuns']>>>([]);
+  protected readonly scouterDuelRuns = signal<Awaited<ReturnType<GameProgressRepository['listScouterDuelRuns']>>>([]);
   protected readonly miniGameRuns = signal<Awaited<ReturnType<GameProgressRepository['listMiniGameRuns']>>>([]);
   protected readonly quests = signal<DigiCoreQuest[]>([]);
   protected readonly masteryEntries = signal<{ label: string; value: number }[]>([]);
@@ -178,7 +189,7 @@ export class CollectionPage {
   }
 
   private async load(): Promise<void> {
-    const [favorites, notes, teams, battles, tournaments, rivalRuns, expeditionRuns, skillForgeRuns, squadDrillRuns, miniGameRuns, quests, mastery] = await Promise.all([
+    const [favorites, notes, teams, battles, tournaments, rivalRuns, expeditionRuns, skillForgeRuns, squadDrillRuns, scouterDuelRuns, miniGameRuns, quests, mastery] = await Promise.all([
       this.progress.listFavorites(),
       this.progress.listNotes(),
       this.progress.listTeams(),
@@ -188,6 +199,7 @@ export class CollectionPage {
       this.progress.listExpeditionRuns(),
       this.progress.listSkillForgeRuns(),
       this.progress.listSquadDrillRuns(),
+      this.progress.listScouterDuelRuns(),
       this.progress.listMiniGameRuns(),
       this.progress.dailyQuestBoard(),
       this.progress.mastery(),
@@ -201,6 +213,7 @@ export class CollectionPage {
     this.expeditionRuns.set(expeditionRuns);
     this.skillForgeRuns.set(skillForgeRuns);
     this.squadDrillRuns.set(squadDrillRuns);
+    this.scouterDuelRuns.set(scouterDuelRuns);
     this.miniGameRuns.set(miniGameRuns);
     this.quests.set(quests);
     this.masteryEntries.set(Object.entries(mastery.tracks).map(([label, value]) => ({ label, value })));

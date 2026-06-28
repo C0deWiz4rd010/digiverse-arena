@@ -84,7 +84,7 @@ export class Sidebar {
     { path: '/rivals', label: 'Rival Signal', icon: 'RV' },
     { path: '/minigames', label: 'Mini-Games', icon: 'MG' },
     { path: '/tournaments', label: 'Tournaments', icon: 'TR' },
-    { path: '/compare', label: 'Compare', icon: 'CP' },
+    { path: '/compare', label: 'Scouter Duel', icon: 'SC' },
     { path: '/collection', label: 'Collection', icon: 'CL' },
     { path: '/settings', label: 'Settings', icon: 'ST' },
   ];

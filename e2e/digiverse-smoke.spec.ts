@@ -72,6 +72,14 @@ test.describe('DigiVerse Arena smoke', () => {
     await expect(page.getByText('Nexus Contracts')).toBeVisible();
     await expectNoBrokenVisibleImages(page);
 
+    await page.goto('/compare');
+    await expect(page.getByRole('heading', { name: 'Scouter Duel', exact: true })).toBeVisible();
+    await expect(page.locator('.scouter-card').first()).toBeVisible();
+    await page.locator('.scouter-card').first().getByRole('button', { name: /Call/ }).click();
+    await expect(page.locator('.scouter-result')).toBeVisible();
+    await expect(page.locator('.scouter-result')).toContainText('Outcome');
+    await expectNoBrokenVisibleImages(page);
+
     await page.goto('/arena');
     await expect(page.getByRole('heading', { name: 'Local-first PvE command battles' })).toBeVisible();
     await page.getByRole('button', { name: 'Start battle' }).first().click();
@@ -106,6 +114,7 @@ test.describe('DigiVerse Arena smoke', () => {
     await expect(page.getByRole('heading', { name: 'Field Expeditions' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Skill Forge', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Squad Lab', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Scouter Duels' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Mini-Games' })).toBeVisible();
     await expect(page.getByText('Starter anchor for campaign smoke.')).toBeVisible();
     await expectNoBrokenVisibleImages(page);

@@ -1500,6 +1500,171 @@
   gap: var(--space-4);
 }
 
+.scouter-page {
+  --scouter-line: rgba(255, 183, 3, 0.48);
+}
+
+.scouter-hero {
+  border-color: rgba(255, 183, 3, 0.34);
+}
+
+.scouter-toolbar .input {
+  width: 150px;
+  min-width: 150px;
+}
+
+.scouter-scenario-grid,
+.scouter-candidate-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.scouter-scenario-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.scouter-scenario {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 180px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.055);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.scouter-scenario strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.scouter-scenario span:not(.chip):not(.eyebrow) {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.scouter-scenario--selected {
+  border-color: var(--scouter-line);
+  box-shadow: 0 0 22px rgba(255, 183, 3, 0.14);
+}
+
+.scouter-scenario--volatile {
+  border-color: rgba(255, 59, 107, 0.5);
+}
+
+.scouter-theater,
+.scouter-result {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.4fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+  border: 1px solid var(--scouter-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 183, 3, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(55, 243, 255, 0.08), rgba(53, 255, 158, 0.07)),
+    rgba(7, 16, 29, 0.84);
+  overflow: hidden;
+}
+
+.scouter-result--hit {
+  border-color: rgba(53, 255, 158, 0.62);
+}
+
+.scouter-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(rgba(255, 183, 3, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 183, 3, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 50% 48%, rgba(255, 183, 3, 0.24), transparent 44%),
+    rgba(255, 255, 255, 0.045);
+  background-size: 30px 30px, 30px 30px, auto, auto;
+  overflow: hidden;
+}
+
+.scouter-core > span {
+  position: relative;
+  z-index: 1;
+  max-width: 14rem;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.5vw, 2.35rem);
+  text-align: center;
+}
+
+.scouter-core__rings {
+  position: absolute;
+  width: 176px;
+  height: 176px;
+  border: 1px solid rgba(255, 183, 3, 0.38);
+  border-radius: 30%;
+  box-shadow:
+    0 0 0 28px rgba(255, 183, 3, 0.045),
+    0 0 0 58px rgba(55, 243, 255, 0.035);
+  transform: rotate(45deg);
+}
+
+.scouter-theater__body {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.scouter-candidate-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.scouter-card {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(7, 16, 29, 0.78);
+}
+
+.scouter-card--leader {
+  border-color: rgba(255, 183, 3, 0.48);
+}
+
+.scouter-card__image {
+  display: grid;
+  place-items: center;
+  min-height: 148px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 183, 3, 0.22), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.scouter-card__image img {
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.42));
+}
+
+.scouter-card__body {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.scouter-card__body h3 {
+  margin: 0;
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
@@ -1589,15 +1754,19 @@
   .forge-theater,
   .forge-result,
   .squad-drill-theater,
-  .squad-result {
+  .squad-result,
+  .scouter-theater,
+  .scouter-result {
     grid-template-columns: 1fr;
   }
 
-  .squad-member {
+  .squad-member,
+  .scouter-card {
     grid-template-columns: 1fr;
   }
 
-  .squad-member__image img {
+  .squad-member__image img,
+  .scouter-card__image img {
     width: 132px;
     height: 132px;
   }
@@ -1618,6 +1787,11 @@
   }
 
   .squad-toolbar .input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .scouter-toolbar .input {
     width: 100%;
     min-width: 0;
   }
@@ -1653,6 +1827,10 @@
 
   .squad-core__rings {
     animation: mini-pulse 3.6s ease-in-out infinite;
+  }
+
+  .scouter-core__rings {
+    animation: forge-spin 8s linear infinite;
   }
 }
 

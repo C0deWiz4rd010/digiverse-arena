@@ -62,6 +62,7 @@ export class Home {
     { label: 'Field Ops', icon: 'EX', action: () => this.go('/expeditions') },
     { label: 'Skill Forge', icon: 'SF', action: () => this.go('/skill-forge') },
     { label: 'Squad Lab', icon: 'SQ', action: () => this.go('/team-builder') },
+    { label: 'Scouter Duel', icon: 'SC', action: () => this.go('/compare') },
     { label: 'Mini-Games', icon: 'MG', action: () => this.go('/minigames') },
     { label: 'Nexus Lab', icon: 'NX', action: () => this.go('/nexus') },
   ];

@@ -62,7 +62,7 @@ export const routes: Routes = [
   },
   {
     path: 'compare',
-    loadComponent: () => import('./features/game/game-pages').then((m) => m.ComparePage),
+    loadComponent: () => import('./features/game/scouter-duel-page').then((m) => m.ScouterDuelPage),
   },
   {
     path: 'collection',

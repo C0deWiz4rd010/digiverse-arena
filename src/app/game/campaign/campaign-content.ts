@@ -13,6 +13,7 @@ export type QuestObjectiveKind =
   | 'expedition'
   | 'forge'
   | 'squad-drill'
+  | 'scouter-duel'
   | 'skill'
   | 'evolution'
   | 'minigame'
@@ -47,6 +48,7 @@ export interface CampaignState {
   completedMiniGames: string[];
   completedSkillForgeIds: string[];
   completedSquadDrillIds: string[];
+  completedScouterDuelIds: string[];
   rivalDigimonId: number;
   defeatedRivalIds: number[];
   exploredFieldNames: string[];
@@ -65,6 +67,7 @@ export interface CampaignFacts {
   expeditions: number;
   skillForges: number;
   squadDrills: number;
+  scouterDuels: number;
   masteryTotal: number;
 }
 
@@ -164,6 +167,7 @@ export function defaultCampaignState(seed = dayIndex()): CampaignState {
     completedMiniGames: [],
     completedSkillForgeIds: [],
     completedSquadDrillIds: [],
+    completedScouterDuelIds: [],
     rivalDigimonId: 1 + seededIndex(seed + 13, 1488),
     defeatedRivalIds: [],
     exploredFieldNames: [],
@@ -202,6 +206,16 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
       objectives: [objective('squad-drill', 'training-run', 1, baseFacts.squadDrills, 'Complete 1 Squad Lab drill.')],
       rewardBits: 40,
       rewardMastery: 9,
+      status: 'active',
+    },
+    {
+      id: `scouter-${seed}`,
+      title: 'Scouter Duel Read',
+      track: 'tactics',
+      description: 'Call one Scouter Duel winner and archive the read.',
+      objectives: [objective('scouter-duel', 'prediction', 1, baseFacts.scouterDuels, 'Resolve 1 Scouter Duel prediction.')],
+      rewardBits: 36,
+      rewardMastery: 8,
       status: 'active',
     },
     {
@@ -399,6 +413,7 @@ function normalizeFacts(facts: Partial<CampaignFacts>): CampaignFacts {
     expeditions: facts.expeditions ?? 0,
     skillForges: facts.skillForges ?? 0,
     squadDrills: facts.squadDrills ?? 0,
+    scouterDuels: facts.scouterDuels ?? 0,
     masteryTotal: facts.masteryTotal ?? 0,
   };
 }

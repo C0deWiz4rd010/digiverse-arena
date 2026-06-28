@@ -8,6 +8,7 @@ import {
   type FavoriteRecord,
   type MiniGameRunRecord,
   type RivalRunRecord,
+  type ScouterDuelRunRecord,
   type SavedTeamRecord,
   type SkillForgeRunRecord,
   type SquadDrillRunRecord,
@@ -19,6 +20,7 @@ import type { FieldExpeditionResult } from '../../game/field/field-expedition';
 import type { RivalDuelResult } from '../../game/rivals/rival-system';
 import type { SkillForgeResult } from '../../game/skills/skill-forge';
 import type { SquadDrillResult } from '../../game/team/squad-lab';
+import type { ScouterDuelResult } from '../../game/compare/scouter-duel';
 import {
   applyMasteryEvent,
   defaultDigiCoreProfile,
@@ -160,6 +162,7 @@ export class GameProgressRepository {
         completedMiniGames: state.completedMiniGames ?? [],
         completedSkillForgeIds: state.completedSkillForgeIds ?? [],
         completedSquadDrillIds: state.completedSquadDrillIds ?? [],
+        completedScouterDuelIds: state.completedScouterDuelIds ?? [],
         defeatedRivalIds: state.defeatedRivalIds ?? [],
         exploredFieldNames: state.exploredFieldNames ?? [],
       };
@@ -170,6 +173,7 @@ export class GameProgressRepository {
         completedMiniGames: normalizedState.completedMiniGames,
         completedSkillForgeIds: normalizedState.completedSkillForgeIds,
         completedSquadDrillIds: normalizedState.completedSquadDrillIds,
+        completedScouterDuelIds: normalizedState.completedScouterDuelIds,
         defeatedRivalIds: normalizedState.defeatedRivalIds,
         exploredFieldNames: normalizedState.exploredFieldNames,
       };
@@ -199,6 +203,7 @@ export class GameProgressRepository {
       expeditionRuns,
       skillForgeRuns,
       squadDrillRuns,
+      scouterDuelRuns,
       mastery,
     ] = await Promise.all([
       digiDb.digimon.count().catch(() => 0),
@@ -212,6 +217,7 @@ export class GameProgressRepository {
       digiDb.expeditionRuns.toArray().catch(() => [] as ExpeditionRunRecord[]),
       digiDb.skillForgeRuns.toArray().catch(() => [] as SkillForgeRunRecord[]),
       digiDb.squadDrillRuns.toArray().catch(() => [] as SquadDrillRunRecord[]),
+      digiDb.scouterDuelRuns.toArray().catch(() => [] as ScouterDuelRunRecord[]),
       this.mastery(),
     ]);
     return {
@@ -226,6 +232,7 @@ export class GameProgressRepository {
       expeditions: expeditionRuns.filter((run) => run.outcome === 'complete' || run.outcome === 'partial').length,
       skillForges: skillForgeRuns.filter((run) => run.outcome === 'perfect' || run.outcome === 'stable').length,
       squadDrills: squadDrillRuns.length,
+      scouterDuels: scouterDuelRuns.length,
       masteryTotal: totalMastery(mastery),
     };
   }
@@ -265,6 +272,35 @@ export class GameProgressRepository {
 
   async listSquadDrillRuns(limit = 12): Promise<SquadDrillRunRecord[]> {
     return digiDb.squadDrillRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async listScouterDuelRuns(limit = 12): Promise<ScouterDuelRunRecord[]> {
+    return digiDb.scouterDuelRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async saveScouterDuelRun(result: ScouterDuelResult): Promise<void> {
+    await digiDb.scouterDuelRuns.put({
+      id: `scouter-${Date.now()}-${Math.round(Math.random() * 9999)}`,
+      scenarioId: result.scenario.id,
+      scenarioTitle: result.scenario.title,
+      predictedName: result.predictedName,
+      winnerName: result.winnerName,
+      outcome: result.outcome,
+      confidence: result.confidence,
+      rewardBits: result.rewardBits,
+      recap: result.recap,
+      createdAt: Date.now(),
+    });
+    const state = await this.campaignState();
+    await this.saveCampaignState({
+      ...state,
+      completedScouterDuelIds: [...new Set([...(state.completedScouterDuelIds ?? []), result.scenario.id])],
+    });
+    await this.applyMastery({
+      track: result.masteryTrack,
+      amount: result.masteryAmount,
+      reason: `Scouter Duel ${result.scenario.title}`,
+    });
   }
 
   async saveSquadDrillRun(result: SquadDrillResult): Promise<void> {
@@ -411,6 +447,7 @@ export class GameProgressRepository {
       digiDb.expeditionRuns.clear(),
       digiDb.skillForgeRuns.clear(),
       digiDb.squadDrillRuns.clear(),
+      digiDb.scouterDuelRuns.clear(),
     ]);
   }
 }

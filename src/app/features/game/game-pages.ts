@@ -1375,7 +1375,7 @@ export class CollectionPage {
         </article>
         <article class="panel">
           <h3>User Data</h3>
-          <p class="muted">Clears favorites, notes, teams, Squad Lab drills, battles, tournaments, field expeditions, skill forge runs, rival bounties, mini-games, settings and DigiCore mastery.</p>
+          <p class="muted">Clears favorites, notes, teams, Squad Lab drills, Scouter Duels, battles, tournaments, field expeditions, skill forge runs, rival bounties, mini-games, settings and DigiCore mastery.</p>
           <button class="btn btn--accent" type="button" (click)="clearUserData()">Clear local game data</button>
         </article>
       </div>

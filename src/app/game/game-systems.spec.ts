@@ -19,7 +19,10 @@ import {
   miniGameChallenge,
   questCompletion,
   createRivalSignal,
+  createScouterDuelPlan,
+  createScouterScenarios,
   createSquadLabPlan,
+  resolveScouterDuel,
   rivalScoreLine,
   rivalWinRate,
   runRivalDuel,
@@ -30,6 +33,7 @@ import {
   scoreTeam,
   skillComboFit,
   skillForgeWinRate,
+  scouterHitRate,
   squadDrillSuccessRate,
   squadMemberRole,
   simulateBattle,
@@ -191,6 +195,7 @@ describe('campaign, ideas and mini-games', () => {
       expeditions: 1,
       skillForges: 1,
       squadDrills: 1,
+      scouterDuels: 1,
       masteryTotal: 40,
     });
     expect(quests.every((quest) => quest.status === 'claimable')).toBe(true);
@@ -311,6 +316,28 @@ describe('squad lab system', () => {
     expect(result.rewardBits).toBeGreaterThan(0);
     expect(result.roles.length).toBe(3);
     expect(squadDrillSuccessRate([{ outcome: 'clear' }, { outcome: 'strained' }])).toBe(50);
+  });
+});
+
+describe('scouter duel system', () => {
+  it('creates scenarios and scores candidates with odds', () => {
+    const scenario = createScouterScenarios(44)[0];
+    const plan = createScouterDuelPlan([agumon, gabumon, greymon], scenario, 44);
+    expect(createScouterScenarios(44)).toHaveLength(4);
+    expect(plan.candidates).toHaveLength(3);
+    expect(plan.candidates[0].scenarioScore).toBeGreaterThan(0);
+    expect(plan.candidates[0].winOdds).toBeGreaterThan(0);
+    expect(plan.winnerId).toBeTruthy();
+  });
+
+  it('resolves prediction outcomes and hit rate', () => {
+    const scenario = createScouterScenarios(45)[1];
+    const plan = createScouterDuelPlan([agumon, gabumon, greymon], scenario, 45);
+    const result = resolveScouterDuel([agumon, gabumon, greymon], scenario, plan.winnerId!, 45);
+    expect(['hit', 'miss', 'perfect-read']).toContain(result.outcome);
+    expect(result.rewardBits).toBeGreaterThan(0);
+    expect(result.winnerName).toBeTruthy();
+    expect(scouterHitRate([{ outcome: 'hit' }, { outcome: 'miss' }])).toBe(50);
   });
 });
 
