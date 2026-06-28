@@ -61,7 +61,7 @@ export class Home {
     { label: 'Rival Signal', icon: 'RV', action: () => this.go('/rivals') },
     { label: 'Field Ops', icon: 'EX', action: () => this.go('/expeditions') },
     { label: 'Skill Forge', icon: 'SF', action: () => this.go('/skill-forge') },
-    { label: 'Build Team', icon: 'TM', action: () => this.go('/team-builder') },
+    { label: 'Squad Lab', icon: 'SQ', action: () => this.go('/team-builder') },
     { label: 'Mini-Games', icon: 'MG', action: () => this.go('/minigames') },
     { label: 'Nexus Lab', icon: 'NX', action: () => this.go('/nexus') },
   ];

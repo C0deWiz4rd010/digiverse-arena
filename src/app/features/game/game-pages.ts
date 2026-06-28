@@ -227,7 +227,7 @@ export class DigiDexPage {
             <div class="action-row">
               <a class="btn btn--primary" routerLink="/arena">Start arena</a>
               <a class="btn" [routerLink]="['/compare']" [queryParams]="{ ids: d.id + ',1,2' }">Compare</a>
-              <a class="btn" routerLink="/team-builder">Add via Team Builder</a>
+              <a class="btn" routerLink="/team-builder">Open Squad Lab</a>
               <a class="btn" routerLink="/minigames">Profile challenge</a>
               <button class="btn btn--accent" type="button" (click)="toggleFavorite(d)">
                 {{ favorite() ? 'Favorited' : 'Favorite' }}
@@ -1375,7 +1375,7 @@ export class CollectionPage {
         </article>
         <article class="panel">
           <h3>User Data</h3>
-          <p class="muted">Clears favorites, notes, teams, battles, tournaments, field expeditions, skill forge runs, rival bounties, mini-games, settings and DigiCore mastery.</p>
+          <p class="muted">Clears favorites, notes, teams, Squad Lab drills, battles, tournaments, field expeditions, skill forge runs, rival bounties, mini-games, settings and DigiCore mastery.</p>
           <button class="btn btn--accent" type="button" (click)="clearUserData()">Clear local game data</button>
         </article>
       </div>

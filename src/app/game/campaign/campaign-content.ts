@@ -12,6 +12,7 @@ export type QuestObjectiveKind =
   | 'field'
   | 'expedition'
   | 'forge'
+  | 'squad-drill'
   | 'skill'
   | 'evolution'
   | 'minigame'
@@ -45,6 +46,7 @@ export interface CampaignState {
   favoriteDigimonIds: number[];
   completedMiniGames: string[];
   completedSkillForgeIds: string[];
+  completedSquadDrillIds: string[];
   rivalDigimonId: number;
   defeatedRivalIds: number[];
   exploredFieldNames: string[];
@@ -62,6 +64,7 @@ export interface CampaignFacts {
   rivals: number;
   expeditions: number;
   skillForges: number;
+  squadDrills: number;
   masteryTotal: number;
 }
 
@@ -160,6 +163,7 @@ export function defaultCampaignState(seed = dayIndex()): CampaignState {
     favoriteDigimonIds: [],
     completedMiniGames: [],
     completedSkillForgeIds: [],
+    completedSquadDrillIds: [],
     rivalDigimonId: 1 + seededIndex(seed + 13, 1488),
     defeatedRivalIds: [],
     exploredFieldNames: [],
@@ -188,6 +192,16 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
       objectives: [objective('team', 'saved-team', 1, baseFacts.teams, 'Save or update 1 team.')],
       rewardBits: 34,
       rewardMastery: 8,
+      status: 'active',
+    },
+    {
+      id: `squad-drill-${seed}`,
+      title: 'Squad Lab Drill',
+      track: 'tactics',
+      description: 'Run a Squad Lab drill and turn team theory into a saved training result.',
+      objectives: [objective('squad-drill', 'training-run', 1, baseFacts.squadDrills, 'Complete 1 Squad Lab drill.')],
+      rewardBits: 40,
+      rewardMastery: 9,
       status: 'active',
     },
     {
@@ -384,6 +398,7 @@ function normalizeFacts(facts: Partial<CampaignFacts>): CampaignFacts {
     rivals: facts.rivals ?? 0,
     expeditions: facts.expeditions ?? 0,
     skillForges: facts.skillForges ?? 0,
+    squadDrills: facts.squadDrills ?? 0,
     masteryTotal: facts.masteryTotal ?? 0,
   };
 }

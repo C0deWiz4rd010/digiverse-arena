@@ -8,4 +8,5 @@ export * from './rivals/rival-system';
 export * from './skills/skill-forge';
 export * from './stats/battle-stats';
 export * from './team/team-builder';
+export * from './team/squad-lab';
 export * from './tournaments/tournament-content';

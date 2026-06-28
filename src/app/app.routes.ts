@@ -33,7 +33,7 @@ export const routes: Routes = [
   },
   {
     path: 'team-builder',
-    loadComponent: () => import('./features/game/game-pages').then((m) => m.TeamBuilderPage),
+    loadComponent: () => import('./features/game/squad-lab-page').then((m) => m.SquadLabPage),
   },
   {
     path: 'nexus',

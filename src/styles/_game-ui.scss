@@ -1305,6 +1305,201 @@
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
 }
 
+.squad-page {
+  --squad-line: rgba(55, 243, 255, 0.46);
+}
+
+.squad-hero {
+  border-color: rgba(55, 243, 255, 0.34);
+}
+
+.squad-toolbar .input {
+  width: 150px;
+  min-width: 150px;
+}
+
+.squad-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.48fr);
+}
+
+.squad-theater,
+.squad-coach,
+.squad-drill-zone {
+  position: relative;
+  overflow: hidden;
+}
+
+.squad-theater::before,
+.squad-coach::before,
+.squad-drill-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-success-500), var(--color-accent-500));
+}
+
+.squad-roster,
+.squad-mission-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.squad-roster {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.squad-member {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: var(--space-3);
+  min-height: 180px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(7, 16, 29, 0.78);
+}
+
+.squad-member__image {
+  display: grid;
+  place-items: center;
+  min-height: 124px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(55, 243, 255, 0.24), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.squad-member__image img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.42));
+}
+
+.squad-member__body {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.squad-member__body h3,
+.squad-coach h3 {
+  margin: 0;
+}
+
+.squad-drill-zone {
+  display: grid;
+  gap: var(--space-4);
+  border: 1px solid rgba(55, 243, 255, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background:
+    radial-gradient(circle at 10% 18%, rgba(55, 243, 255, 0.14), transparent 30%),
+    linear-gradient(135deg, rgba(53, 255, 158, 0.07), rgba(255, 183, 3, 0.06)),
+    rgba(8, 17, 31, 0.82);
+}
+
+.squad-mission-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.squad-mission {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 190px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.055);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.squad-mission strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.squad-mission span:not(.chip):not(.eyebrow) {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.squad-mission--selected {
+  border-color: var(--squad-line);
+  box-shadow: 0 0 22px rgba(55, 243, 255, 0.14);
+}
+
+.squad-mission--volatile {
+  border-color: rgba(255, 183, 3, 0.5);
+}
+
+.squad-drill-theater,
+.squad-result {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.4fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+  border: 1px solid var(--squad-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(55, 243, 255, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(53, 255, 158, 0.08), rgba(255, 183, 3, 0.07)),
+    rgba(7, 16, 29, 0.84);
+  overflow: hidden;
+}
+
+.squad-result--flawless {
+  border-color: rgba(53, 255, 158, 0.62);
+}
+
+.squad-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(rgba(55, 243, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55, 243, 255, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 50% 48%, rgba(55, 243, 255, 0.24), transparent 44%),
+    rgba(255, 255, 255, 0.045);
+  background-size: 28px 28px, 28px 28px, auto, auto;
+  overflow: hidden;
+}
+
+.squad-core > span {
+  position: relative;
+  z-index: 1;
+  max-width: 14rem;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.5vw, 2.35rem);
+  text-align: center;
+}
+
+.squad-core__rings {
+  position: absolute;
+  width: 172px;
+  height: 172px;
+  border: 1px solid rgba(55, 243, 255, 0.36);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 28px rgba(55, 243, 255, 0.045),
+    0 0 0 58px rgba(53, 255, 158, 0.035);
+}
+
+.squad-drill-theater__body {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
@@ -1392,8 +1587,19 @@
   .expedition-theater,
   .expedition-result,
   .forge-theater,
-  .forge-result {
+  .forge-result,
+  .squad-drill-theater,
+  .squad-result {
     grid-template-columns: 1fr;
+  }
+
+  .squad-member {
+    grid-template-columns: 1fr;
+  }
+
+  .squad-member__image img {
+    width: 132px;
+    height: 132px;
   }
 
   .tournament-loop {
@@ -1409,6 +1615,11 @@
   .select,
   .btn {
     width: 100%;
+  }
+
+  .squad-toolbar .input {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -1438,6 +1649,10 @@
 
   .forge-core__rings {
     animation: forge-spin 7s linear infinite;
+  }
+
+  .squad-core__rings {
+    animation: mini-pulse 3.6s ease-in-out infinite;
   }
 }
 

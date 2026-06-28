@@ -77,7 +77,7 @@ export class Sidebar {
     { path: '/expeditions', label: 'Expeditions', icon: 'EX' },
     { path: '/skills', label: 'Skills', icon: 'SK' },
     { path: '/skill-forge', label: 'Skill Forge', icon: 'SF' },
-    { path: '/team-builder', label: 'Team Builder', icon: 'TM' },
+    { path: '/team-builder', label: 'Squad Lab', icon: 'SQ' },
     { path: '/nexus', label: 'Nexus Lab', icon: 'NX' },
     { path: '/arena', label: 'Arena', icon: 'AR' },
     { path: '/random-battle', label: 'Random Battle', icon: 'RB' },

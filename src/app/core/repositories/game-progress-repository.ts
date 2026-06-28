@@ -10,6 +10,7 @@ import {
   type RivalRunRecord,
   type SavedTeamRecord,
   type SkillForgeRunRecord,
+  type SquadDrillRunRecord,
   type TournamentHistoryRecord,
 } from '../cache/digi-db';
 import type { DigiCoreQuest, CampaignFacts, CampaignState } from '../../game/campaign/campaign-content';
@@ -17,6 +18,7 @@ import { dailyQuests, defaultCampaignState } from '../../game/campaign/campaign-
 import type { FieldExpeditionResult } from '../../game/field/field-expedition';
 import type { RivalDuelResult } from '../../game/rivals/rival-system';
 import type { SkillForgeResult } from '../../game/skills/skill-forge';
+import type { SquadDrillResult } from '../../game/team/squad-lab';
 import {
   applyMasteryEvent,
   defaultDigiCoreProfile,
@@ -157,6 +159,7 @@ export class GameProgressRepository {
         favoriteDigimonIds: state.favoriteDigimonIds ?? [],
         completedMiniGames: state.completedMiniGames ?? [],
         completedSkillForgeIds: state.completedSkillForgeIds ?? [],
+        completedSquadDrillIds: state.completedSquadDrillIds ?? [],
         defeatedRivalIds: state.defeatedRivalIds ?? [],
         exploredFieldNames: state.exploredFieldNames ?? [],
       };
@@ -166,6 +169,7 @@ export class GameProgressRepository {
         favoriteDigimonIds: normalizedState.favoriteDigimonIds,
         completedMiniGames: normalizedState.completedMiniGames,
         completedSkillForgeIds: normalizedState.completedSkillForgeIds,
+        completedSquadDrillIds: normalizedState.completedSquadDrillIds,
         defeatedRivalIds: normalizedState.defeatedRivalIds,
         exploredFieldNames: normalizedState.exploredFieldNames,
       };
@@ -183,7 +187,20 @@ export class GameProgressRepository {
   }
 
   async campaignFacts(): Promise<CampaignFacts> {
-    const [scans, favorites, teams, battles, tournaments, notes, miniGameRuns, rivalRuns, expeditionRuns, skillForgeRuns, mastery] = await Promise.all([
+    const [
+      scans,
+      favorites,
+      teams,
+      battles,
+      tournaments,
+      notes,
+      miniGameRuns,
+      rivalRuns,
+      expeditionRuns,
+      skillForgeRuns,
+      squadDrillRuns,
+      mastery,
+    ] = await Promise.all([
       digiDb.digimon.count().catch(() => 0),
       digiDb.favorites.count().catch(() => 0),
       digiDb.teams.count().catch(() => 0),
@@ -194,6 +211,7 @@ export class GameProgressRepository {
       digiDb.rivalRuns.toArray().catch(() => [] as RivalRunRecord[]),
       digiDb.expeditionRuns.toArray().catch(() => [] as ExpeditionRunRecord[]),
       digiDb.skillForgeRuns.toArray().catch(() => [] as SkillForgeRunRecord[]),
+      digiDb.squadDrillRuns.toArray().catch(() => [] as SquadDrillRunRecord[]),
       this.mastery(),
     ]);
     return {
@@ -207,6 +225,7 @@ export class GameProgressRepository {
       rivals: rivalRuns.filter((run) => run.outcome === 'clear').length,
       expeditions: expeditionRuns.filter((run) => run.outcome === 'complete' || run.outcome === 'partial').length,
       skillForges: skillForgeRuns.filter((run) => run.outcome === 'perfect' || run.outcome === 'stable').length,
+      squadDrills: squadDrillRuns.length,
       masteryTotal: totalMastery(mastery),
     };
   }
@@ -242,6 +261,35 @@ export class GameProgressRepository {
 
   async listSkillForgeRuns(limit = 12): Promise<SkillForgeRunRecord[]> {
     return digiDb.skillForgeRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async listSquadDrillRuns(limit = 12): Promise<SquadDrillRunRecord[]> {
+    return digiDb.squadDrillRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async saveSquadDrillRun(result: SquadDrillResult): Promise<void> {
+    await digiDb.squadDrillRuns.put({
+      id: `squad-${Date.now()}-${Math.round(Math.random() * 9999)}`,
+      missionId: result.mission.id,
+      missionTitle: result.mission.title,
+      outcome: result.outcome,
+      score: result.score,
+      rewardBits: result.rewardBits,
+      teamScore: result.teamScore,
+      roleSummary: result.roles.map((role) => `${role.name}: ${role.role}`),
+      recap: result.recap,
+      createdAt: Date.now(),
+    });
+    const state = await this.campaignState();
+    await this.saveCampaignState({
+      ...state,
+      completedSquadDrillIds: [...new Set([...(state.completedSquadDrillIds ?? []), result.mission.id])],
+    });
+    await this.applyMastery({
+      track: result.masteryTrack,
+      amount: result.masteryAmount,
+      reason: `Squad Lab ${result.mission.title}`,
+    });
   }
 
   async saveSkillForgeRun(result: SkillForgeResult): Promise<void> {
@@ -362,6 +410,7 @@ export class GameProgressRepository {
       digiDb.rivalRuns.clear(),
       digiDb.expeditionRuns.clear(),
       digiDb.skillForgeRuns.clear(),
+      digiDb.squadDrillRuns.clear(),
     ]);
   }
 }

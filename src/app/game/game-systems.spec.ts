@@ -19,15 +19,19 @@ import {
   miniGameChallenge,
   questCompletion,
   createRivalSignal,
+  createSquadLabPlan,
   rivalScoreLine,
   rivalWinRate,
   runRivalDuel,
   runFieldExpedition,
+  runSquadDrill,
   runTournament,
   runSkillForge,
   scoreTeam,
   skillComboFit,
   skillForgeWinRate,
+  squadDrillSuccessRate,
+  squadMemberRole,
   simulateBattle,
   statTotal,
 } from '.';
@@ -186,6 +190,7 @@ describe('campaign, ideas and mini-games', () => {
       rivals: 1,
       expeditions: 1,
       skillForges: 1,
+      squadDrills: 1,
       masteryTotal: 40,
     });
     expect(quests.every((quest) => quest.status === 'claimable')).toBe(true);
@@ -287,6 +292,25 @@ describe('skill forge system', () => {
     expect(result.comboChain.length).toBeGreaterThan(0);
     expect(result.rewardBits).toBeGreaterThan(0);
     expect(skillForgeWinRate([{ outcome: 'perfect' }, { outcome: 'fizzle' }])).toBe(50);
+  });
+});
+
+describe('squad lab system', () => {
+  it('creates role diagnostics and missions from a team', () => {
+    const plan = createSquadLabPlan([agumon, gabumon, greymon], 33);
+    expect(plan.roles).toHaveLength(3);
+    expect(plan.missions).toHaveLength(4);
+    expect(plan.diagnostics.total).toBeGreaterThan(0);
+    expect(['Anchor', 'Scout', 'Specialist', 'Support', 'Vanguard']).toContain(squadMemberRole(agumon).role);
+  });
+
+  it('runs squad drills and reports a success rate', () => {
+    const plan = createSquadLabPlan([agumon, gabumon, greymon], 34);
+    const result = runSquadDrill(plan.missions[0], [agumon, gabumon, greymon], 77);
+    expect(['clear', 'flawless', 'strained']).toContain(result.outcome);
+    expect(result.rewardBits).toBeGreaterThan(0);
+    expect(result.roles.length).toBe(3);
+    expect(squadDrillSuccessRate([{ outcome: 'clear' }, { outcome: 'strained' }])).toBe(50);
   });
 });
 
