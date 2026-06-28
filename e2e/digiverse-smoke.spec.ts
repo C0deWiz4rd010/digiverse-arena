@@ -20,7 +20,18 @@ test.describe('DigiVerse Arena smoke', () => {
 
     await page.goto('/dex/1');
     await expect(page.locator('.detail-hero')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Agumon' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Agumon', exact: true })).toBeVisible();
+    await expect(page.getByText('Idea Deck')).toBeVisible();
+    await page.getByRole('button', { name: 'Favorite' }).click();
+    await page.getByPlaceholder('Add a build idea').fill('Starter anchor for campaign smoke.');
+    await page.getByRole('button', { name: 'Save note' }).click();
+    await expect(page.getByText('Note saved to Collection.')).toBeVisible();
+    await expectNoBrokenVisibleImages(page);
+
+    await page.goto('/minigames');
+    await expect(page.getByRole('heading', { name: 'Mini-Games from live DAPI signals' })).toBeVisible();
+    await page.locator('.choice-card').first().click();
+    await expect(page.getByRole('status')).toBeVisible();
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/team-builder');
@@ -60,6 +71,13 @@ test.describe('DigiVerse Arena smoke', () => {
     await expect(page.locator('.spotlight-log p').first()).toBeVisible();
     await page.getByRole('button', { name: /Relic/ }).click();
     await expect(page.getByRole('status')).toContainText('claimed');
+
+    await page.goto('/collection');
+    await expect(page.getByRole('heading', { name: 'Favorites' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Notes' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Mini-Games' })).toBeVisible();
+    await expect(page.getByText('Starter anchor for campaign smoke.')).toBeVisible();
+    await expectNoBrokenVisibleImages(page);
 
     expect(pageErrors).toEqual([]);
     expect(consoleErrors.filter((entry) => !entry.includes('favicon'))).toEqual([]);

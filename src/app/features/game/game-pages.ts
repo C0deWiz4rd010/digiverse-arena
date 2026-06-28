@@ -12,9 +12,13 @@ import {
   battleSummary,
   combatTuningFromProfile,
   dataCompleteness,
+  dailyEncounters,
   deriveSkills,
   deriveStats,
   generateNexusContracts,
+  ideaForDigimon,
+  ideasForTeam,
+  questCompletion,
   rarityScore,
   runTournament,
   scoreTeam,
@@ -26,6 +30,9 @@ import {
   type BattleEvent,
   type BattleResult,
   type DigiLinkProfile,
+  type DigiCoreQuest,
+  type DigimonIdea,
+  type EncounterDefinition,
   type NexusContract,
   type TournamentDefinition,
   type TournamentMatch,
@@ -221,9 +228,27 @@ export class DigiDexPage {
               <a class="btn btn--primary" routerLink="/arena">Start arena</a>
               <a class="btn" [routerLink]="['/compare']" [queryParams]="{ ids: d.id + ',1,2' }">Compare</a>
               <a class="btn" routerLink="/team-builder">Add via Team Builder</a>
+              <a class="btn" routerLink="/minigames">Profile challenge</a>
+              <button class="btn btn--accent" type="button" (click)="toggleFavorite(d)">
+                {{ favorite() ? 'Favorited' : 'Favorite' }}
+              </button>
             </div>
           </div>
         </div>
+
+        @if (idea(); as idea) {
+          <article class="panel idea-card idea-card--wide">
+            <p class="eyebrow">Idea Deck // {{ idea.role }}</p>
+            <h3>{{ idea.name }} build plan</h3>
+            <div class="grid">
+              <div class="metric"><span class="metric__label">Build</span><strong class="metric__value">{{ idea.buildHint }}</strong></div>
+              <div class="metric"><span class="metric__label">Team Hook</span><strong class="metric__value">{{ idea.teamHook }}</strong></div>
+              <div class="metric"><span class="metric__label">Field Hook</span><strong class="metric__value">{{ idea.fieldHook }}</strong></div>
+              <div class="metric"><span class="metric__label">Rival Hook</span><strong class="metric__value">{{ idea.rivalHook }}</strong></div>
+            </div>
+            <p class="lead">{{ idea.signatureMoment }}</p>
+          </article>
+        }
 
         <div class="grid grid--wide">
           <article class="panel">
@@ -243,6 +268,20 @@ export class DigiDexPage {
               <div class="metric"><span class="metric__label">Power</span><strong class="metric__value">{{ totalPower() }}</strong></div>
               <div class="metric"><span class="metric__label">Rarity</span><strong class="metric__value">{{ rarity() }}</strong></div>
               <div class="metric"><span class="metric__label">Data</span><strong class="metric__value">{{ completeness() }}%</strong></div>
+            </div>
+          </article>
+          <article class="panel">
+            <h3>Player Note</h3>
+            <textarea
+              class="note-box"
+              maxlength="800"
+              placeholder="Add a build idea, rival read or evolution reminder..."
+              [value]="note()"
+              (input)="note.set($any($event.target).value)"
+            ></textarea>
+            <div class="action-row">
+              <button class="btn btn--primary" type="button" (click)="saveNote(d)">Save note</button>
+              @if (noteMessage()) { <span class="muted">{{ noteMessage() }}</span> }
             </div>
           </article>
           <article class="panel">
@@ -279,8 +318,12 @@ export class DigimonDetailPage {
   protected readonly fallbackImage = FALLBACK_IMAGE;
   protected readonly digimon = signal<Digimon | null>(null);
   protected readonly loading = signal(true);
+  protected readonly favorite = signal(false);
+  protected readonly note = signal('');
+  protected readonly noteMessage = signal('');
   protected readonly stats = computed(() => (this.digimon() ? deriveStats(this.digimon()!) : null));
   protected readonly skills = computed(() => (this.digimon() ? deriveSkills(this.digimon()!) : []));
+  protected readonly idea = computed<DigimonIdea | null>(() => (this.digimon() ? ideaForDigimon(this.digimon()!) : null));
   protected readonly totalPower = computed(() => (this.stats() ? statTotal(this.stats()!) : 0));
   protected readonly rarity = computed(() => (this.digimon() ? rarityScore(this.digimon()!) : 0));
   protected readonly completeness = computed(() => (this.digimon() ? dataCompleteness(this.digimon()!) : 0));
@@ -314,12 +357,24 @@ export class DigimonDetailPage {
     return Math.min(100, Math.round((value / 180) * 100));
   }
 
+  protected async toggleFavorite(digimon: Digimon): Promise<void> {
+    this.favorite.set(await this.progress.toggleFavorite({ id: digimon.id, name: digimon.name, image: digimon.image }));
+  }
+
+  protected async saveNote(digimon: Digimon): Promise<void> {
+    await this.progress.saveNote(digimon.id, this.note());
+    this.noteMessage.set(this.note().trim() ? 'Note saved to Collection.' : 'Note cleared.');
+  }
+
   private async load(): Promise<void> {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.loading.set(true);
     try {
       const digimon = await this.repo.getDigimon(id);
       this.digimon.set(digimon);
+      const [favorite, note] = await Promise.all([this.progress.isFavorite(id), this.progress.getNote(id)]);
+      this.favorite.set(favorite);
+      this.note.set(note);
       await this.progress.applyMastery({ track: 'scan', amount: 5, reason: `Profile ${digimon.name}` });
       if (digimon.nextEvolutions.length || digimon.priorEvolutions.length) {
         await this.progress.applyMastery({ track: 'evolution', amount: 3, reason: 'Evolution link viewed' });
@@ -354,6 +409,14 @@ export class DigimonDetailPage {
             @for (field of d.fields; track field.id) { <span class="chip chip--hot">{{ field.name }}</span> }
           </div>
         </article>
+        @if (idea(); as idea) {
+          <article class="panel idea-card">
+            <p class="eyebrow">Evolution Quest</p>
+            <h3>{{ idea.signatureMoment }}</h3>
+            <p class="lead">{{ idea.buildHint }}</p>
+            <div class="chip-row"><span class="chip">{{ idea.role }}</span><span class="chip chip--hot">Idea {{ idea.score }}</span></div>
+          </article>
+        }
         <div class="grid grid--wide">
           <article class="panel">
             <h3>Prior Forms</h3>
@@ -385,6 +448,7 @@ export class EvolutionLabPage {
   private readonly progress = inject(GameProgressRepository);
   protected readonly id = signal('1');
   protected readonly digimon = signal<Digimon | null>(null);
+  protected readonly idea = computed<DigimonIdea | null>(() => (this.digimon() ? ideaForDigimon(this.digimon()!) : null));
 
   constructor() {
     void this.load();
@@ -410,6 +474,16 @@ export class EvolutionLabPage {
         <h2>Biome-aware battle planning</h2>
         <p class="lead">Fields become arena modifiers, team cohesion hooks and DigiCore cartography progress.</p>
       </header>
+      <div class="encounter-strip">
+        @for (encounter of encounters(); track encounter.id) {
+          <article class="encounter-card" [class.encounter-card--volatile]="encounter.risk === 'volatile'">
+            <p class="eyebrow">{{ encounter.trigger }} // {{ encounter.risk }}</p>
+            <h3>{{ encounter.headline }}</h3>
+            <p class="muted">{{ encounter.detail }}</p>
+            <button class="btn" type="button" (click)="explore(encounter.headline)">Claim expedition intel</button>
+          </article>
+        }
+      </div>
       <div class="grid">
         @for (field of fields(); track field.id) {
           <article class="panel">
@@ -427,6 +501,7 @@ export class FieldExplorerPage {
   private readonly repo = inject(DigimonRepository);
   private readonly progress = inject(GameProgressRepository);
   protected readonly fields = signal<MetaEntry[]>([]);
+  protected readonly encounters = signal<EncounterDefinition[]>(dailyEncounters());
 
   constructor() {
     void this.repo.getMeta('field').then((fields) => this.fields.set(fields));
@@ -440,6 +515,7 @@ export class FieldExplorerPage {
 @Component({
   selector: 'app-skill-library',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
     <section class="page">
       <header class="page-head">
@@ -450,7 +526,13 @@ export class FieldExplorerPage {
       <div class="toolbar">
         <input class="input" type="search" placeholder="Filter skills" [value]="query()" (input)="query.set($any($event.target).value)" />
         <button class="btn btn--primary" type="button" (click)="train()">Analyze visible skills</button>
+        <a class="btn" routerLink="/minigames">Open Skill Match</a>
       </div>
+      <article class="panel idea-card">
+        <p class="eyebrow">Skill Forge</p>
+        <h3>Read tags, then prove the read in the Arcade.</h3>
+        <p class="lead">Every Skill Match result writes local mastery and pushes the daily Mini-Game Pulse quest.</p>
+      </article>
       <div class="grid">
         @for (skill of filtered(); track skill.id) {
           <article class="panel">
@@ -528,6 +610,15 @@ export class SkillLibraryPage {
             <div class="bar"><div class="bar__head"><span>Skill diversity</span><strong>{{ score().skillDiversity }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="score().skillDiversity"></div></div></div>
           </div>
           @for (note of score().notes; track note) { <p class="muted">{{ note }}</p> }
+          <div class="idea-stack">
+            <p class="eyebrow">Squad Ideas</p>
+            @for (idea of ideas().slice(0, 3); track idea.digimonId) {
+              <div class="idea-mini">
+                <strong>{{ idea.name }} // {{ idea.role }}</strong>
+                <span>{{ idea.teamHook }}</span>
+              </div>
+            }
+          </div>
           <div class="nexus-board">
             <p class="eyebrow">DigiLink Nexus</p>
             <h3>{{ nexus().protocol }} · Grade {{ nexus().grade }}</h3>
@@ -561,6 +652,7 @@ export class TeamBuilderPage {
   protected readonly score = computed(() => scoreTeam(this.members()));
   protected readonly nexus = computed<DigiLinkProfile>(() => analyzeDigiLink(this.members()));
   protected readonly contracts = computed<NexusContract[]>(() => generateNexusContracts(this.nexus()));
+  protected readonly ideas = computed<DigimonIdea[]>(() => ideasForTeam(this.members()));
 
   constructor() {
     void this.loadDefaults();
@@ -620,6 +712,7 @@ export class TeamBuilderPage {
           <button class="btn" type="button" (click)="loadPreset('field')">Field Core</button>
           <button class="btn" type="button" (click)="loadPreset('elite')">Elite Circuit</button>
           <a class="btn" routerLink="/arena">Test in Arena</a>
+          <a class="btn" routerLink="/minigames">Train contract reflex</a>
         </div>
       </header>
 
@@ -728,6 +821,16 @@ export class NexusLabPage {
         <h2>Local-first PvE command battles</h2>
         <p class="lead">Choose a mode, load real DAPI combatants and resolve a deterministic command battle with a readable event log.</p>
       </header>
+      <div class="quest-strip">
+        @for (quest of quests().slice(0, 3); track quest.id) {
+          <article class="quest-card" [class.quest-card--ready]="quest.status === 'claimable'">
+            <div class="quest-card__top"><span>{{ quest.track }}</span><strong>{{ questCompletion(quest) }}%</strong></div>
+            <h3>{{ quest.title }}</h3>
+            <p class="muted">{{ quest.objectives[0].description }}</p>
+            <div class="campaign-progress"><span [style.width.%]="questCompletion(quest)"></span></div>
+          </article>
+        }
+      </div>
       <div class="grid">
         @for (mode of modes; track mode.id) {
           <article class="panel arena-card">
@@ -798,7 +901,12 @@ export class ArenaPage {
   protected readonly modes = ARENA_MODES;
   protected readonly battle = signal<BattleResult | null>(null);
   protected readonly intel = signal<ArenaIntel | null>(null);
+  protected readonly quests = signal<DigiCoreQuest[]>([]);
   protected readonly summary = computed(() => (this.battle() ? battleSummary(this.battle()!) : ''));
+
+  constructor() {
+    void this.refreshQuests();
+  }
 
   protected onImageError(event: Event): void {
     imageError(event);
@@ -810,6 +918,10 @@ export class ArenaPage {
 
   protected formatEvent(event: BattleEvent): string {
     return eventText(event);
+  }
+
+  protected questCompletion(quest: DigiCoreQuest): number {
+    return questCompletion(quest);
   }
 
   protected async start(mode: ArenaModeDefinition): Promise<void> {
@@ -836,6 +948,11 @@ export class ArenaPage {
       summary: battleSummary(result),
       events: result.events,
     });
+    await this.refreshQuests();
+  }
+
+  private async refreshQuests(): Promise<void> {
+    this.quests.set(await this.progress.dailyQuestBoard());
   }
 }
 
@@ -1108,6 +1225,16 @@ export class TournamentsPage {
         <h2>Scouter comparison</h2>
         <p class="lead">Compare artwork, metadata, battle stats, rarity and data completeness.</p>
       </header>
+      @if (leader(); as lead) {
+        <article class="panel prediction-slip">
+          <div>
+            <p class="eyebrow">Scouter Duel</p>
+            <h3>{{ lead.name }} has the cleanest opening line.</h3>
+          </div>
+          <p class="lead">{{ idea(lead).teamHook }}</p>
+          <a class="btn btn--primary" [routerLink]="['/dex', lead.id]">Open winner profile</a>
+        </article>
+      }
       <div class="grid grid--wide">
         @for (digimon of digimon(); track digimon.id) {
           <article class="monster-card">
@@ -1130,6 +1257,12 @@ export class ComparePage {
   private readonly route = inject(ActivatedRoute);
   protected readonly fallbackImage = FALLBACK_IMAGE;
   protected readonly digimon = signal<Digimon[]>([]);
+  protected readonly leader = computed(() =>
+    this.digimon().reduce<Digimon | null>(
+      (best, digimon) => (!best || this.power(digimon) + this.rarity(digimon) > this.power(best) + this.rarity(best) ? digimon : best),
+      null,
+    ),
+  );
 
   constructor() {
     const ids =
@@ -1155,6 +1288,10 @@ export class ComparePage {
 
   protected completeness(digimon: Digimon): number {
     return dataCompleteness(digimon);
+  }
+
+  protected idea(digimon: Digimon): DigimonIdea {
+    return ideaForDigimon(digimon);
   }
 }
 
@@ -1233,7 +1370,7 @@ export class CollectionPage {
         </article>
         <article class="panel">
           <h3>User Data</h3>
-          <p class="muted">Clears teams, battle history, tournament history, settings and DigiCore mastery.</p>
+          <p class="muted">Clears favorites, notes, teams, battles, tournaments, mini-games, settings and DigiCore mastery.</p>
           <button class="btn btn--accent" type="button" (click)="clearUserData()">Clear local game data</button>
         </article>
       </div>

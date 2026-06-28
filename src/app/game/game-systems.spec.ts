@@ -5,10 +5,15 @@ import {
   applyMasteryEvent,
   attributeMultiplier,
   combatTuningFromProfile,
+  dailyQuests,
+  defaultCampaignState,
   defaultDigiCoreProfile,
   deriveStats,
   generateNexusContracts,
+  ideaForDigimon,
   levelTier,
+  miniGameChallenge,
+  questCompletion,
   runTournament,
   scoreTeam,
   simulateBattle,
@@ -153,6 +158,45 @@ describe('tournaments and mastery', () => {
     });
     expect(profile.unlocks).toContain('arena-badge');
     expect(profile.badges).toContain('Arena crest badge');
+  });
+});
+
+describe('campaign, ideas and mini-games', () => {
+  it('builds daily quests from local progress facts', () => {
+    const quests = dailyQuests(42, {
+      scans: 3,
+      favorites: 1,
+      teams: 1,
+      battles: 1,
+      tournaments: 0,
+      notes: 1,
+      miniGames: 1,
+      masteryTotal: 40,
+    });
+    expect(quests.every((quest) => quest.status === 'claimable')).toBe(true);
+    expect(questCompletion(quests[0])).toBe(100);
+    expect(defaultCampaignState(42).activeQuestIds.length).toBeGreaterThan(0);
+  });
+
+  it('creates a playable idea card from a Digimon profile', () => {
+    const idea = ideaForDigimon(greymon);
+    expect(idea.name).toBe('Greymon');
+    expect(idea.buildHint).toContain('Vaccine');
+    expect(idea.signatureMoment).toContain('Mega Flame');
+    expect(idea.score).toBeGreaterThan(0);
+  });
+
+  it('generates deterministic mini-game challenges with valid answers', () => {
+    const pool = [
+      { id: 1, name: 'Agumon', image: null },
+      { id: 2, name: 'Gabumon', image: null },
+      { id: 3, name: 'Devimon', image: null },
+      { id: 4, name: 'Greymon', image: null },
+    ];
+    const challenge = miniGameChallenge('who-is-that', pool, 9);
+    expect(challenge.choices).toContain(challenge.answer);
+    expect(challenge.rewardBits).toBeGreaterThan(0);
+    expect(miniGameChallenge('attribute-clash', pool, 9).answer).toBe('Vaccine');
   });
 });
 

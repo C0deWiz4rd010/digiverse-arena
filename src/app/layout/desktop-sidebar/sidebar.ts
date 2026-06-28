@@ -79,6 +79,7 @@ export class Sidebar {
     { path: '/nexus', label: 'Nexus Lab', icon: 'NX' },
     { path: '/arena', label: 'Arena', icon: 'AR' },
     { path: '/random-battle', label: 'Random Battle', icon: 'RB' },
+    { path: '/minigames', label: 'Mini-Games', icon: 'MG' },
     { path: '/tournaments', label: 'Tournaments', icon: 'TR' },
     { path: '/compare', label: 'Compare', icon: 'CP' },
     { path: '/collection', label: 'Collection', icon: 'CL' },

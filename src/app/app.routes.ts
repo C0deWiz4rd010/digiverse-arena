@@ -41,6 +41,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game/game-pages').then((m) => m.RandomBattlePage),
   },
   {
+    path: 'minigames',
+    loadComponent: () => import('./features/game/minigames-page').then((m) => m.MiniGamesPage),
+  },
+  {
     path: 'tournaments',
     loadComponent: () => import('./features/game/tournaments-page').then((m) => m.TournamentsPage),
   },
@@ -50,7 +54,7 @@ export const routes: Routes = [
   },
   {
     path: 'collection',
-    loadComponent: () => import('./features/game/game-pages').then((m) => m.CollectionPage),
+    loadComponent: () => import('./features/game/collection-page').then((m) => m.CollectionPage),
   },
   {
     path: 'settings',

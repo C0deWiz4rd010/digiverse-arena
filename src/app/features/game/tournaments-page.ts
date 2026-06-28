@@ -5,9 +5,11 @@ import { GameProgressRepository } from '../../core/repositories/game-progress-re
 import {
   TOURNAMENTS,
   TOURNAMENT_STRATEGIES,
+  questCompletion,
   runTournament,
   tournamentSummary,
   type BattleEvent,
+  type DigiCoreQuest,
   type TournamentDefinition,
   type TournamentMatch,
   type TournamentMoment,
@@ -73,6 +75,20 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
           <span>Claim Reward</span>
         </div>
       </header>
+
+      <section class="quest-strip" aria-label="Tournament campaign quests">
+        @for (quest of quests().slice(0, 3); track quest.id) {
+          <article class="quest-card" [class.quest-card--ready]="quest.status === 'claimable'" [class.quest-card--claimed]="quest.status === 'claimed'">
+            <div class="quest-card__top"><span>{{ quest.track }}</span><strong>{{ questCompletion(quest) }}%</strong></div>
+            <h3>{{ quest.title }}</h3>
+            <p class="muted">{{ quest.description }}</p>
+            <div class="campaign-progress"><span [style.width.%]="questCompletion(quest)"></span></div>
+            <button class="btn" type="button" [disabled]="quest.status !== 'claimable'" (click)="claimQuest(quest)">
+              {{ quest.status === 'claimed' ? 'Claimed' : 'Claim reward' }}
+            </button>
+          </article>
+        }
+      </section>
 
       <section class="tournament-command">
         <div>
@@ -386,9 +402,23 @@ export class TournamentsPage {
   protected readonly prediction = signal<TournamentRun['contenders'][number] | null>(null);
   protected readonly predictionBonusClaimed = signal(false);
   protected readonly toast = signal('');
+  protected readonly quests = signal<DigiCoreQuest[]>([]);
+
+  constructor() {
+    void this.refreshQuests();
+  }
 
   protected onImageError(event: Event): void {
     imageError(event);
+  }
+
+  protected questCompletion(quest: DigiCoreQuest): number {
+    return questCompletion(quest);
+  }
+
+  protected async claimQuest(quest: DigiCoreQuest): Promise<void> {
+    await this.progress.claimQuest(quest);
+    await this.refreshQuests();
   }
 
   protected selectTournament(tournament: TournamentDefinition): void {
@@ -585,8 +615,13 @@ export class TournamentsPage {
         championName: run.championName,
         run,
       });
+      await this.refreshQuests();
     } finally {
       this.running.set(false);
     }
+  }
+
+  private async refreshQuests(): Promise<void> {
+    this.quests.set(await this.progress.dailyQuestBoard());
   }
 }

@@ -1,12 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { DigimonRepository } from '../../core/repositories/digimon-repository';
 import type { DigimonListItem } from '../../core/models/digimon';
+import { DigimonRepository } from '../../core/repositories/digimon-repository';
+import { GameProgressRepository } from '../../core/repositories/game-progress-repository';
 import { dayIndex, seededIndex } from '../../core/utils/seed';
 import { DigiButton } from '../../design-system/components/digi-button';
 import { DigiCard } from '../../design-system/components/digi-card';
-import { DigiSkeleton } from '../../design-system/components/digi-skeleton';
 import { DigiErrorState } from '../../design-system/components/digi-error-state';
+import { DigiSkeleton } from '../../design-system/components/digi-skeleton';
+import {
+  campaignNextAction,
+  dailyEncounters,
+  questCompletion,
+  type DigiCoreQuest,
+  type EncounterDefinition,
+} from '../../game';
 
 interface QuickAction {
   label: string;
@@ -21,7 +29,7 @@ interface StatTile {
 
 const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
 
-/** Home / Dashboard — the cyber entry point with search, quick actions, daily pick and stats. */
+/** Home / Dashboard: campaign command bridge with search, quests, encounters and daily signals. */
 @Component({
   selector: 'app-home',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +39,7 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
 })
 export class Home {
   private readonly repo = inject(DigimonRepository);
+  private readonly progress = inject(GameProgressRepository);
   private readonly router = inject(Router);
 
   protected readonly query = signal('');
@@ -40,15 +49,18 @@ export class Home {
   protected readonly daily = signal<DigimonListItem | null>(null);
   protected readonly dailySkill = signal<string | null>(null);
   protected readonly stats = signal<StatTile[]>([]);
+  protected readonly quests = signal<DigiCoreQuest[]>([]);
+  protected readonly encounters = signal<EncounterDefinition[]>([]);
+  protected readonly nextAction = computed(() => campaignNextAction(this.quests()));
   protected readonly fallbackImage = FALLBACK_IMAGE;
 
   protected readonly quickActions: QuickAction[] = [
-    { label: 'Open DigiDex', icon: '▦', action: () => this.go('/dex') },
-    { label: 'Random Digimon', icon: '⚄', action: () => void this.randomDigimon() },
-    { label: 'Random Battle', icon: '⚔', action: () => this.go('/random-battle') },
-    { label: 'Build Team', icon: '✦', action: () => this.go('/team-builder') },
-    { label: 'Nexus Lab', icon: '◇', action: () => this.go('/nexus') },
-    { label: 'Evolution Lab', icon: '⟲', action: () => this.go('/evolution-lab') },
+    { label: 'Open DigiDex', icon: 'DX', action: () => this.go('/dex') },
+    { label: 'Random Digimon', icon: 'RD', action: () => void this.randomDigimon() },
+    { label: 'Random Battle', icon: 'RB', action: () => this.go('/random-battle') },
+    { label: 'Build Team', icon: 'TM', action: () => this.go('/team-builder') },
+    { label: 'Mini-Games', icon: 'MG', action: () => this.go('/minigames') },
+    { label: 'Nexus Lab', icon: 'NX', action: () => this.go('/nexus') },
   ];
 
   constructor() {
@@ -68,6 +80,15 @@ export class Home {
   protected openDaily(): void {
     const d = this.daily();
     if (d) void this.router.navigate(['/dex', d.id]);
+  }
+
+  protected questCompletion(quest: DigiCoreQuest): number {
+    return questCompletion(quest);
+  }
+
+  protected async claim(quest: DigiCoreQuest): Promise<void> {
+    await this.progress.claimQuest(quest);
+    this.quests.set(await this.progress.dailyQuestBoard());
   }
 
   protected onImageError(event: Event): void {
@@ -91,13 +112,14 @@ export class Home {
     this.loading.set(true);
     this.error.set(false);
     try {
-      const [total, attributes, fields, types, levels, skills] = await Promise.all([
+      const [total, attributes, fields, types, levels, skills, questBoard] = await Promise.all([
         this.repo.getDigimonCount(),
         this.repo.getMetaCount('attribute'),
         this.repo.getMetaCount('field'),
         this.repo.getMetaCount('type'),
         this.repo.getMetaCount('level'),
         this.repo.getMetaCount('skill'),
+        this.progress.dailyQuestBoard().catch(() => []),
       ]);
 
       this.stats.set([
@@ -110,6 +132,8 @@ export class Home {
       ]);
 
       const seed = dayIndex();
+      this.quests.set(questBoard);
+      this.encounters.set(dailyEncounters(seed));
       const dailyIdx = seededIndex(seed, total);
       const dailyPage = await this.repo.getDigimonList({ page: dailyIdx, pageSize: 1 });
       this.daily.set(dailyPage.items[0] ?? null);

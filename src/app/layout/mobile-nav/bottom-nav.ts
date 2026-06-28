@@ -57,7 +57,9 @@ interface NavItem {
       transition: color 0.18s ease;
     }
     .bottom-nav__icon {
-      font-size: 1.3rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 800;
       line-height: 1;
     }
     .bottom-nav__item--active {
@@ -73,10 +75,10 @@ interface NavItem {
 })
 export class BottomNav {
   protected readonly items: NavItem[] = [
-    { path: '/', label: 'Home', icon: '◈' },
-    { path: '/dex', label: 'Dex', icon: '▦' },
-    { path: '/arena', label: 'Arena', icon: '⚔' },
-    { path: '/team-builder', label: 'Team', icon: '✦' },
-    { path: '/settings', label: 'More', icon: '⋯' },
+    { path: '/', label: 'Home', icon: 'HM' },
+    { path: '/dex', label: 'Dex', icon: 'DX' },
+    { path: '/arena', label: 'Arena', icon: 'AR' },
+    { path: '/team-builder', label: 'Team', icon: 'TM' },
+    { path: '/minigames', label: 'Mini', icon: 'MG' },
   ];
 }

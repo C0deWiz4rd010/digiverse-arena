@@ -729,6 +729,257 @@
   margin-top: var(--space-2);
 }
 
+.quest-strip,
+.encounter-strip,
+.idea-stack,
+.favorite-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.quest-strip {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.encounter-strip {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.quest-card,
+.encounter-card,
+.idea-mini,
+.favorite-token,
+.mini-game-card,
+.choice-card {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.quest-card,
+.encounter-card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.quest-card__top {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.quest-card--ready {
+  border-color: rgba(53, 255, 158, 0.58);
+  box-shadow: 0 0 22px rgba(53, 255, 158, 0.14);
+}
+
+.quest-card--claimed {
+  opacity: 0.7;
+}
+
+.encounter-card--volatile {
+  border-color: rgba(255, 183, 3, 0.55);
+}
+
+.campaign-progress {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.campaign-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
+}
+
+.idea-card {
+  border-color: rgba(55, 243, 255, 0.28);
+  background:
+    linear-gradient(135deg, rgba(55, 243, 255, 0.11), rgba(255, 183, 3, 0.08)),
+    rgba(8, 17, 31, 0.76);
+}
+
+.idea-card--wide {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.idea-mini {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+}
+
+.idea-mini span {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.note-box {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: rgba(4, 10, 18, 0.72);
+  color: var(--text-main);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.favorite-list {
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+}
+
+.favorite-token {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  min-height: 132px;
+  padding: var(--space-3);
+  color: var(--text-main);
+  text-align: center;
+  text-decoration: none;
+}
+
+.favorite-token img {
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.34));
+}
+
+.mini-page {
+  overflow: hidden;
+}
+
+.mini-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-3);
+}
+
+.mini-game-card {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 180px;
+  padding: var(--space-4);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mini-game-card strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.mini-game-card span:not(.chip):not(.eyebrow) {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.mini-game-card--selected,
+.choice-card--correct {
+  border-color: rgba(53, 255, 158, 0.62);
+  box-shadow: 0 0 22px rgba(53, 255, 158, 0.14);
+}
+
+.mini-theater {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.45fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+  border: 1px solid rgba(55, 243, 255, 0.35);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(55, 243, 255, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(53, 255, 158, 0.08), rgba(255, 183, 3, 0.09)),
+    rgba(7, 16, 29, 0.84);
+  overflow: hidden;
+}
+
+.mini-theater--win {
+  border-color: rgba(53, 255, 158, 0.62);
+}
+
+.mini-theater--loss {
+  border-color: rgba(255, 59, 107, 0.48);
+}
+
+.mini-theater__visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+}
+
+.mini-theater__visual img {
+  position: relative;
+  z-index: 1;
+  width: min(220px, 80%);
+  height: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.44));
+}
+
+.mini-pulse {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(55, 243, 255, 0.28), transparent 68%);
+}
+
+.mini-theater__content {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+
+.choice-card {
+  min-height: 64px;
+  padding: var(--space-3);
+  color: var(--text-main);
+  font: inherit;
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.choice-card--picked {
+  border-color: rgba(255, 183, 3, 0.58);
+}
+
+.choice-card:disabled {
+  cursor: default;
+}
+
+.campaign-toast {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid rgba(53, 255, 158, 0.4);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: rgba(53, 255, 158, 0.08);
+}
+
 .match-card {
   display: grid;
   gap: var(--space-3);
@@ -809,7 +1060,8 @@
   .tournament-command,
   .tournament-broadcast,
   .reward-draft,
-  .prediction-slip {
+  .prediction-slip,
+  .mini-theater {
     grid-template-columns: 1fr;
   }
 
@@ -843,6 +1095,10 @@
 
   .match-card--upset {
     animation: tournament-pulse 900ms ease both;
+  }
+
+  .mini-pulse {
+    animation: mini-pulse 3.4s ease-in-out infinite;
   }
 }
 
@@ -878,5 +1134,17 @@
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes mini-pulse {
+  0%,
+  100% {
+    opacity: 0.54;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
   }
 }

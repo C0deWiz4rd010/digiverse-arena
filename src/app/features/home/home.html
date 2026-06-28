@@ -4,8 +4,8 @@
   <p class="hero__kicker">// DIGIVERSE ARENA</p>
   <h2 id="hero-title" class="hero__title">Scan. Evolve. Battle.</h2>
   <p class="hero__subtitle">
-    A mobile-first DigiDex &amp; browsergame powered by the DAPI. Explore every Digimon, build teams
-    and clash in the arena.
+    A mobile-first DigiDex and browsergame powered by the DAPI. Explore every Digimon, build teams,
+    clear daily quests and push the DigiCore campaign forward.
   </p>
 
   <form class="hero__search" role="search" (submit)="onSearch($event)">
@@ -13,7 +13,7 @@
       class="hero__search-input"
       type="search"
       name="q"
-      placeholder="Search Digimon…"
+      placeholder="Search Digimon..."
       aria-label="Search Digimon"
       [value]="query()"
       (input)="query.set($any($event.target).value)"
@@ -38,6 +38,52 @@
     (retry)="load()"
   />
 } @else {
+  <section class="campaign-bridge" aria-labelledby="campaign-title">
+    <div class="campaign-bridge__head">
+      <div>
+        <p class="panel__label">// DigiCore Campaign</p>
+        <h3 id="campaign-title">Next action: {{ nextAction() }}</h3>
+      </div>
+      <button class="campaign-bridge__cta" type="button" (click)="go('/minigames')">Open Arcade</button>
+    </div>
+
+    <div class="quest-strip">
+      @for (quest of quests().slice(0, 4); track quest.id) {
+        <article class="quest-card" [class.quest-card--ready]="quest.status === 'claimable'" [class.quest-card--claimed]="quest.status === 'claimed'">
+          <div class="quest-card__top">
+            <span>{{ quest.track }}</span>
+            <strong>{{ questCompletion(quest) }}%</strong>
+          </div>
+          <h4>{{ quest.title }}</h4>
+          <p>{{ quest.description }}</p>
+          <div class="campaign-progress"><span [style.width.%]="questCompletion(quest)"></span></div>
+          <div class="chip-row">
+            <span class="chip">{{ quest.rewardBits }} bits</span>
+            <span class="chip chip--hot">+{{ quest.rewardMastery }} mastery</span>
+          </div>
+          <button class="btn" type="button" [disabled]="quest.status !== 'claimable'" (click)="claim(quest)">
+            {{ quest.status === 'claimed' ? 'Claimed' : 'Claim reward' }}
+          </button>
+        </article>
+      } @empty {
+        <div class="empty">Questboard is charging...</div>
+      }
+    </div>
+
+    <div class="encounter-strip">
+      @for (encounter of encounters(); track encounter.id) {
+        <article class="encounter-card" [class.encounter-card--volatile]="encounter.risk === 'volatile'">
+          <span class="eyebrow">{{ encounter.trigger }} // {{ encounter.risk }}</span>
+          <h4>{{ encounter.headline }}</h4>
+          <p>{{ encounter.detail }}</p>
+          <button class="btn btn--primary" type="button" (click)="go(encounter.route)">
+            {{ encounter.actionLabel }}
+          </button>
+        </article>
+      }
+    </div>
+  </section>
+
   <div class="panels">
     <digi-card class="daily" [interactive]="!loading()" (click)="openDaily()">
       <p class="panel__label">Daily Digimon</p>
@@ -55,7 +101,7 @@
           (error)="onImageError($event)"
         />
         <p class="daily__name">{{ d.name }}</p>
-        <p class="daily__hint">Tap to open profile →</p>
+        <p class="daily__hint">Tap to open profile</p>
       }
     </digi-card>
 
@@ -64,9 +110,9 @@
       @if (loading()) {
         <digi-skeleton width="70%" height="1.4rem" />
       } @else {
-        <p class="skill__name">{{ dailySkill() ?? '—' }}</p>
+        <p class="skill__name">{{ dailySkill() ?? 'No signal' }}</p>
         <button class="skill__link" type="button" (click)="go('/skills')">
-          Open Skill Library →
+          Open Skill Library
         </button>
       }
     </digi-card>

@@ -55,6 +55,34 @@ export interface SettingsRecord {
   value: unknown;
 }
 
+export interface FavoriteRecord {
+  id: number;
+  name: string;
+  image: string | null;
+  createdAt: number;
+}
+
+export interface DigimonNoteRecord {
+  digimonId: number;
+  text: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CampaignRecord {
+  id: 'local';
+  data: unknown;
+  updatedAt: number;
+}
+
+export interface MiniGameRunRecord {
+  id: string;
+  gameId: string;
+  result: 'win' | 'loss';
+  rewardBits: number;
+  createdAt: number;
+}
+
 /**
  * IndexedDB cache for DAPI data. Keeps Digimon details and metadata lists locally so the
  * app stays fast and partially works offline. User-owned data (favorites, teams, history)
@@ -68,6 +96,10 @@ export class DigiDb extends Dexie {
   tournaments!: Table<TournamentHistoryRecord, string>;
   mastery!: Table<MasteryRecord, string>;
   settings!: Table<SettingsRecord, string>;
+  favorites!: Table<FavoriteRecord, number>;
+  notes!: Table<DigimonNoteRecord, number>;
+  campaign!: Table<CampaignRecord, string>;
+  miniGameRuns!: Table<MiniGameRunRecord, string>;
 
   constructor() {
     super('digiverse-arena');
@@ -83,6 +115,19 @@ export class DigiDb extends Dexie {
       tournaments: 'id, tournamentId, status, updatedAt',
       mastery: 'id, updatedAt',
       settings: 'id',
+    });
+    this.version(3).stores({
+      digimon: 'id, cachedAt',
+      meta: 'resource, cachedAt',
+      teams: 'id, updatedAt, score',
+      battles: 'id, createdAt, mode, winner',
+      tournaments: 'id, tournamentId, status, updatedAt',
+      mastery: 'id, updatedAt',
+      settings: 'id',
+      favorites: 'id, createdAt',
+      notes: 'digimonId, updatedAt',
+      campaign: 'id, updatedAt',
+      miniGameRuns: 'id, gameId, result, createdAt',
     });
   }
 }

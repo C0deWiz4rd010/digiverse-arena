@@ -2,18 +2,80 @@ import { Injectable } from '@angular/core';
 import {
   digiDb,
   type BattleHistoryRecord,
+  type CampaignRecord,
+  type DigimonNoteRecord,
+  type FavoriteRecord,
+  type MiniGameRunRecord,
   type SavedTeamRecord,
   type TournamentHistoryRecord,
 } from '../cache/digi-db';
+import type { DigiCoreQuest, CampaignFacts, CampaignState } from '../../game/campaign/campaign-content';
+import { dailyQuests, defaultCampaignState } from '../../game/campaign/campaign-content';
 import {
   applyMasteryEvent,
   defaultDigiCoreProfile,
+  totalMastery,
   type DigiCoreProfile,
   type MasteryEvent,
 } from '../../game/mastery/digicore-mastery';
+import { dayIndex } from '../utils/seed';
 
 @Injectable({ providedIn: 'root' })
 export class GameProgressRepository {
+  async listFavorites(): Promise<FavoriteRecord[]> {
+    return digiDb.favorites.orderBy('createdAt').reverse().toArray().catch(() => []);
+  }
+
+  async isFavorite(id: number): Promise<boolean> {
+    return Boolean(await digiDb.favorites.get(id).catch(() => undefined));
+  }
+
+  async toggleFavorite(input: { id: number; name: string; image: string | null }): Promise<boolean> {
+    const existing = await digiDb.favorites.get(input.id).catch(() => undefined);
+    if (existing) {
+      await digiDb.favorites.delete(input.id);
+      const state = await this.campaignState();
+      await this.saveCampaignState({
+        ...state,
+        favoriteDigimonIds: state.favoriteDigimonIds.filter((id) => id !== input.id),
+      });
+      return false;
+    }
+    await digiDb.favorites.put({ ...input, createdAt: Date.now() });
+    const state = await this.campaignState();
+    await this.saveCampaignState({
+      ...state,
+      favoriteDigimonIds: [...new Set([...state.favoriteDigimonIds, input.id])],
+    });
+    await this.applyMastery({ track: 'scan', amount: 3, reason: `Favorite ${input.name}` });
+    return true;
+  }
+
+  async listNotes(): Promise<DigimonNoteRecord[]> {
+    return digiDb.notes.orderBy('updatedAt').reverse().toArray().catch(() => []);
+  }
+
+  async getNote(digimonId: number): Promise<string> {
+    return (await digiDb.notes.get(digimonId).catch(() => undefined))?.text ?? '';
+  }
+
+  async saveNote(digimonId: number, text: string): Promise<void> {
+    const trimmed = text.trim();
+    const existing = await digiDb.notes.get(digimonId).catch(() => undefined);
+    if (!trimmed) {
+      await digiDb.notes.delete(digimonId);
+      return;
+    }
+    const now = Date.now();
+    await digiDb.notes.put({
+      digimonId,
+      text: trimmed.slice(0, 800),
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    });
+    await this.applyMastery({ track: 'scan', amount: 4, reason: `Profile note ${digimonId}` });
+  }
+
   async listTeams(): Promise<SavedTeamRecord[]> {
     return digiDb.teams.orderBy('updatedAt').reverse().toArray().catch(() => []);
   }
@@ -26,6 +88,7 @@ export class GameProgressRepository {
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     });
+    await this.applyMastery({ track: 'tactics', amount: 8, reason: input.name });
   }
 
   async deleteTeam(id: string): Promise<void> {
@@ -78,6 +141,101 @@ export class GameProgressRepository {
     return next;
   }
 
+  async campaignState(): Promise<CampaignState> {
+    const stored = await digiDb.campaign.get('local').catch(() => undefined);
+    const today = dayIndex();
+    if (stored?.data) {
+      const state = stored.data as CampaignState;
+      if (state.dailySeed === today) return state;
+      const next = {
+        ...defaultCampaignState(today),
+        favoriteDigimonIds: state.favoriteDigimonIds ?? [],
+        completedMiniGames: state.completedMiniGames ?? [],
+      };
+      await this.saveCampaignState(next);
+      return next;
+    }
+    const state = defaultCampaignState(today);
+    await this.saveCampaignState(state);
+    return state;
+  }
+
+  async saveCampaignState(state: CampaignState): Promise<void> {
+    const record: CampaignRecord = { id: 'local', data: { ...state, updatedAt: Date.now() }, updatedAt: Date.now() };
+    await digiDb.campaign.put(record);
+  }
+
+  async campaignFacts(): Promise<CampaignFacts> {
+    const [scans, favorites, teams, battles, tournaments, notes, miniGameRuns, mastery] = await Promise.all([
+      digiDb.digimon.count().catch(() => 0),
+      digiDb.favorites.count().catch(() => 0),
+      digiDb.teams.count().catch(() => 0),
+      digiDb.battles.count().catch(() => 0),
+      digiDb.tournaments.count().catch(() => 0),
+      digiDb.notes.count().catch(() => 0),
+      digiDb.miniGameRuns.toArray().catch(() => [] as MiniGameRunRecord[]),
+      this.mastery(),
+    ]);
+    return {
+      scans,
+      favorites,
+      teams,
+      battles,
+      tournaments,
+      notes,
+      miniGames: miniGameRuns.filter((run) => run.result === 'win').length,
+      masteryTotal: totalMastery(mastery),
+    };
+  }
+
+  async dailyQuestBoard(): Promise<DigiCoreQuest[]> {
+    const [state, facts] = await Promise.all([this.campaignState(), this.campaignFacts()]);
+    return dailyQuests(state.dailySeed, facts).map((quest) => ({
+      ...quest,
+      status: state.claimedQuestIds.includes(quest.id) ? 'claimed' : quest.status,
+    }));
+  }
+
+  async claimQuest(quest: DigiCoreQuest): Promise<boolean> {
+    const state = await this.campaignState();
+    if (quest.status !== 'claimable' || state.claimedQuestIds.includes(quest.id)) return false;
+    const claimedQuestIds = [...state.claimedQuestIds, quest.id];
+    await this.saveCampaignState({ ...state, claimedQuestIds });
+    await this.applyMastery({ track: quest.track, amount: quest.rewardMastery, reason: quest.title });
+    return true;
+  }
+
+  async listMiniGameRuns(limit = 12): Promise<MiniGameRunRecord[]> {
+    return digiDb.miniGameRuns.orderBy('createdAt').reverse().limit(limit).toArray().catch(() => []);
+  }
+
+  async recordMiniGame(
+    gameId: string,
+    result: MiniGameRunRecord['result'],
+    rewardBits: number,
+    track: MasteryEvent['track'] = 'skill',
+  ): Promise<void> {
+    await digiDb.miniGameRuns.put({
+      id: `mini-${Date.now()}-${Math.round(Math.random() * 9999)}`,
+      gameId,
+      result,
+      rewardBits,
+      createdAt: Date.now(),
+    });
+    if (result === 'win') {
+      const state = await this.campaignState();
+      await this.saveCampaignState({
+        ...state,
+        completedMiniGames: [...new Set([...state.completedMiniGames, gameId])],
+      });
+    }
+    await this.applyMastery({
+      track,
+      amount: result === 'win' ? 7 : 2,
+      reason: result === 'win' ? `Mini-Game ${gameId}` : `Mini-Game practice ${gameId}`,
+    });
+  }
+
   async clearUserData(): Promise<void> {
     await Promise.all([
       digiDb.teams.clear(),
@@ -85,6 +243,10 @@ export class GameProgressRepository {
       digiDb.tournaments.clear(),
       digiDb.mastery.clear(),
       digiDb.settings.clear(),
+      digiDb.favorites.clear(),
+      digiDb.notes.clear(),
+      digiDb.campaign.clear(),
+      digiDb.miniGameRuns.clear(),
     ]);
   }
 }
