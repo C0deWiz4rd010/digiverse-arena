@@ -33,26 +33,24 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
   template: `
     <section class="page scouter-page">
       <header class="page-head tournament-hero scouter-hero">
-        <p class="eyebrow">// Compare</p>
-        <h2>Scouter Duel</h2>
-        <p class="lead">Call the winner before the simulation speaks. Read stats, attributes, fields and skill hooks, then archive the prediction.</p>
+        <p class="eyebrow">Compare</p>
+        <h2>Compare &amp; predict</h2>
+        <p class="lead">Add a few Digimon, compare their stats, then guess who would win — and see if you're right.</p>
         <div class="metric-grid">
-          <div class="metric"><span class="metric__label">Candidates</span><strong class="metric__value">{{ members().length }}</strong></div>
+          <div class="metric"><span class="metric__label">Digimon</span><strong class="metric__value">{{ members().length }}</strong></div>
           <div class="metric"><span class="metric__label">Confidence</span><strong class="metric__value">{{ plan().confidence }}</strong></div>
-          <div class="metric"><span class="metric__label">Hit Rate</span><strong class="metric__value">{{ hitRate() }}%</strong></div>
-          <div class="metric"><span class="metric__label">History</span><strong class="metric__value">{{ history().length }}</strong></div>
+          <div class="metric"><span class="metric__label">Correct</span><strong class="metric__value">{{ hitRate() }}%</strong></div>
+          <div class="metric"><span class="metric__label">Plays</span><strong class="metric__value">{{ history().length }}</strong></div>
         </div>
       </header>
 
       <div class="toolbar scouter-toolbar">
         <input class="input" type="number" min="1" placeholder="Digimon ID" [value]="addId()" (input)="addId.set($any($event.target).value)" />
-        <button class="btn btn--primary" type="button" (click)="addById()">Add ID</button>
+        <button class="btn btn--primary" type="button" (click)="addById()">Add by ID</button>
         <button class="btn" type="button" (click)="addRandom()">Add random</button>
-        <button class="btn" type="button" (click)="loadPreset('starters')">Starter Set</button>
-        <button class="btn" type="button" (click)="loadPreset('rivals')">Rival Set</button>
-        <button class="btn" type="button" (click)="loadPreset('mega')">Mega Set</button>
-        <a class="btn" routerLink="/team-builder">Squad Lab</a>
-        <a class="btn" routerLink="/arena">Arena</a>
+        <button class="btn" type="button" (click)="loadPreset('starters')">Starters</button>
+        <button class="btn" type="button" (click)="loadPreset('rivals')">Rivals</button>
+        <button class="btn" type="button" (click)="loadPreset('mega')">Megas</button>
       </div>
 
       @if (message()) {
@@ -68,7 +66,7 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
             [class.scouter-scenario--volatile]="scenario.risk === 'volatile'"
             (click)="selectedScenarioId.set(scenario.id); result.set(null)"
           >
-            <span class="eyebrow">{{ scenario.risk }} // difficulty {{ scenario.difficulty }}</span>
+            <span class="eyebrow">{{ scenario.risk }} · difficulty {{ scenario.difficulty }}</span>
             <strong>{{ scenario.title }}</strong>
             <span>{{ scenario.objective }}</span>
             <span class="chip-row">
@@ -84,7 +82,7 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
           <span>{{ selectedScenario().title }}</span>
         </div>
         <div class="scouter-theater__body">
-          <p class="eyebrow">Scouter Read</p>
+          <p class="eyebrow">Prediction</p>
           <h3>{{ plan().notes[0] }}</h3>
           <p class="lead">{{ plan().notes[1] }}</p>
           <div class="metric-grid">
@@ -102,7 +100,7 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
               <img [src]="imageFor(candidate.digimonId)" [alt]="candidate.name" (error)="onImageError($event)" />
             </div>
             <div class="scouter-card__body">
-              <p class="eyebrow">{{ candidate.role }} // {{ candidate.winOdds }}%</p>
+              <p class="eyebrow">{{ candidate.role }} · {{ candidate.winOdds }}%</p>
               <h3>{{ candidate.name }}</h3>
               <div class="chip-row">
                 <span class="chip">{{ candidate.attribute }}</span>
@@ -122,19 +120,19 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
             </div>
           </article>
         } @empty {
-          <div class="empty">Load Digimon to start a Scouter Duel.</div>
+          <div class="empty">Add Digimon to start comparing.</div>
         }
       </div>
 
       @if (result(); as run) {
         <article class="scouter-result" [class.scouter-result--hit]="run.outcome !== 'miss'">
           <div>
-            <p class="eyebrow">Outcome // {{ run.outcome }}</p>
+            <p class="eyebrow">Outcome · {{ run.outcome }}</p>
             <h3>{{ run.recap }}</h3>
             <p class="lead">{{ run.nextHook }}</p>
             <div class="action-row">
               @if (run.winnerId) { <a class="btn btn--primary" [routerLink]="['/dex', run.winnerId]">Open winner</a> }
-              <a class="btn" routerLink="/team-builder">Tune in Squad Lab</a>
+              <a class="btn" routerLink="/team-builder">Open Team</a>
               <a class="btn" routerLink="/arena">Test in Arena</a>
             </div>
           </div>
@@ -149,15 +147,15 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
 
       <div class="grid grid--wide">
         <article class="panel">
-          <h3>Recent Scouter Duels</h3>
+          <h3>Recent plays</h3>
           @for (run of history(); track run.id) {
             <p class="muted">{{ run.scenarioTitle }} - {{ run.outcome }} - {{ run.predictedName }} vs winner {{ run.winnerName }}</p>
           } @empty {
-            <p class="muted">No Scouter Duel reads archived yet.</p>
+            <p class="muted">No plays yet.</p>
           }
         </article>
         <article class="panel">
-          <h3>Coach Notes</h3>
+          <h3>Notes</h3>
           @for (note of plan().notes; track note) { <p class="muted">{{ note }}</p> }
         </article>
       </div>

@@ -15,20 +15,20 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
   template: `
     <section class="page mini-page">
       <header class="page-head tournament-hero">
-        <p class="eyebrow">// DigiCore Arcade</p>
-        <h2>Mini-Games from live DAPI signals</h2>
-        <p class="lead">Short challenges turn images, names, attributes, Fields and evolution hints into rewards that feed the daily campaign.</p>
+        <p class="eyebrow">Mini-Games</p>
+        <h2>Test your Digimon knowledge</h2>
+        <p class="lead">Short quizzes about Digimon images, names and attributes. Answer correctly to earn rewards.</p>
         <div class="metric-grid">
-          <div class="metric"><span class="metric__label">Modes</span><strong class="metric__value">{{ games.length }}</strong></div>
+          <div class="metric"><span class="metric__label">Games</span><strong class="metric__value">{{ games.length }}</strong></div>
           <div class="metric"><span class="metric__label">Streak</span><strong class="metric__value">{{ streak() }}</strong></div>
-          <div class="metric"><span class="metric__label">Pool</span><strong class="metric__value">{{ pool().length }}</strong></div>
+          <div class="metric"><span class="metric__label">Questions</span><strong class="metric__value">{{ pool().length }}</strong></div>
         </div>
       </header>
 
       <div class="mini-mode-grid">
         @for (game of games; track game.id) {
           <button class="mini-game-card" type="button" [class.mini-game-card--selected]="selectedId() === game.id" (click)="launch(game)">
-            <span class="eyebrow">{{ game.verb }} // {{ game.track }}</span>
+            <span class="eyebrow">{{ game.verb }}</span>
             <strong>{{ game.title }}</strong>
             <span>{{ game.description }}</span>
             <span class="chip chip--hot">{{ game.rewardBits }} bits</span>
@@ -37,9 +37,9 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
       </div>
 
       @if (loading()) {
-        <div class="empty">Loading DAPI challenge pool...</div>
+        <div class="empty">Loading questions…</div>
       } @else if (error()) {
-        <div class="empty">The DAPI signal dropped. Reopen the arcade or try again later.</div>
+        <div class="empty">Could not load. Please try again later.</div>
       } @else if (challenge(); as c) {
         <article class="mini-theater" [class.mini-theater--win]="result() === 'win'" [class.mini-theater--loss]="result() === 'loss'">
           <div class="mini-theater__visual">
@@ -68,12 +68,12 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
             </div>
             @if (result()) {
               <div class="campaign-toast" role="status">
-                <strong>{{ result() === 'win' ? 'Correct signal' : 'Signal missed' }}</strong>
+                <strong>{{ result() === 'win' ? 'Correct!' : 'Wrong' }}</strong>
                 <span>{{ resultText() }}</span>
               </div>
               <div class="action-row">
-                <button class="btn btn--primary" type="button" (click)="reroll()">Next challenge</button>
-                <a class="btn" routerLink="/collection">Open archive</a>
+                <button class="btn btn--primary" type="button" (click)="reroll()">Next question</button>
+                <a class="btn" routerLink="/collection">View history</a>
               </div>
             }
           </div>

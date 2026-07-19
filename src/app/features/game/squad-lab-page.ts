@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import type { Digimon } from '../../core/models/digimon';
 import { DigimonRepository } from '../../core/repositories/digimon-repository';
 import { GameProgressRepository } from '../../core/repositories/game-progress-repository';
@@ -31,18 +30,17 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
 @Component({
   selector: 'app-squad-lab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
   template: `
     <section class="page squad-page">
       <header class="page-head tournament-hero squad-hero">
-        <p class="eyebrow">// Squad Lab</p>
-        <h2>Squad Lab</h2>
-        <p class="lead">Build a real Arena formation, read every role, run training drills and turn team theory into saved DigiCore progress.</p>
+        <p class="eyebrow">Team</p>
+        <h2>Build your team</h2>
+        <p class="lead">Add up to 6 Digimon, check how well they work together, then practise with training drills.</p>
         <div class="metric-grid">
-          <div class="metric"><span class="metric__label">Squad Score</span><strong class="metric__value">{{ plan().score.total }}</strong></div>
-          <div class="metric"><span class="metric__label">Lab Fit</span><strong class="metric__value">{{ plan().diagnostics.total }}</strong></div>
-          <div class="metric"><span class="metric__label">Nexus</span><strong class="metric__value">{{ nexus().grade }}</strong></div>
-          <div class="metric"><span class="metric__label">Drill Rate</span><strong class="metric__value">{{ drillRate() }}%</strong></div>
+          <div class="metric"><span class="metric__label">Team score</span><strong class="metric__value">{{ plan().score.total }}</strong></div>
+          <div class="metric"><span class="metric__label">Balance</span><strong class="metric__value">{{ plan().diagnostics.total }}</strong></div>
+          <div class="metric"><span class="metric__label">Synergy</span><strong class="metric__value">{{ nexus().grade }}</strong></div>
+          <div class="metric"><span class="metric__label">Drill success</span><strong class="metric__value">{{ drillRate() }}%</strong></div>
         </div>
       </header>
 
@@ -55,14 +53,10 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
           [value]="addId()"
           (input)="addId.set($any($event.target).value)"
         />
-        <button class="btn btn--primary" type="button" (click)="addById()">Add ID</button>
+        <button class="btn btn--primary" type="button" (click)="addById()">Add by ID</button>
         <button class="btn" type="button" (click)="addRandom()">Add random</button>
-        <button class="btn" type="button" (click)="loadPreset('balanced')">Balance Squad</button>
-        <button class="btn" type="button" (click)="loadPreset('field')">Field Core</button>
-        <button class="btn" type="button" (click)="loadPreset('elite')">Elite Circuit</button>
+        <button class="btn" type="button" (click)="loadPreset('balanced')">Example team</button>
         <button class="btn btn--accent" type="button" [disabled]="members().length === 0" (click)="saveTeam()">Save team</button>
-        <a class="btn" routerLink="/arena">Arena</a>
-        <a class="btn" routerLink="/nexus">Nexus</a>
       </div>
 
       @if (message()) {
@@ -100,14 +94,14 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
                 </div>
               </div>
             } @empty {
-              <div class="empty">Add Digimon to wake the lab.</div>
+              <div class="empty">Add Digimon to start your team.</div>
             }
           </div>
         </article>
 
         <aside class="panel squad-coach">
-          <p class="eyebrow">Coach Board</p>
-          <h3>{{ nexus().protocol }} // Grade {{ nexus().grade }}</h3>
+          <p class="eyebrow">Team report</p>
+          <h3>{{ nexus().protocol }} · Grade {{ nexus().grade }}</h3>
           <div class="metric-grid">
             <div class="metric"><span class="metric__label">Power</span><strong class="metric__value">{{ plan().score.power }}</strong></div>
             <div class="metric"><span class="metric__label">Synergy</span><strong class="metric__value">{{ plan().score.synergy }}</strong></div>
@@ -122,9 +116,9 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
             }
           </div>
           <div class="idea-stack">
-            <p class="eyebrow">Opening Chain</p>
+            <p class="eyebrow">Opening moves</p>
             @for (step of plan().diagnostics.openingChain; track step) {
-              <div class="idea-mini"><strong>{{ step }}</strong><span>Relay beat locked for the next drill.</span></div>
+              <div class="idea-mini"><strong>{{ step }}</strong><span>Ready for your next drill.</span></div>
             } @empty {
               <p class="muted">No opener yet.</p>
             }
@@ -141,10 +135,10 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
       <section class="squad-drill-zone">
         <div class="section-head">
           <div>
-            <p class="eyebrow">Training Missions</p>
-            <h3>Run squad drills</h3>
+            <p class="eyebrow">Training</p>
+            <h3>Practise with drills</h3>
           </div>
-          <button class="btn btn--primary" type="button" [disabled]="members().length === 0" (click)="runSelectedDrill()">Run squad drill</button>
+          <button class="btn btn--primary" type="button" [disabled]="members().length === 0" (click)="runSelectedDrill()">Run drill</button>
         </div>
 
         <div class="squad-mission-grid">
@@ -156,7 +150,7 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
               [class.squad-mission--volatile]="mission.risk === 'volatile'"
               (click)="selectedMissionId.set(mission.id)"
             >
-              <span class="eyebrow">{{ mission.risk }} // difficulty {{ mission.difficulty }}</span>
+              <span class="eyebrow">{{ mission.risk }} · difficulty {{ mission.difficulty }}</span>
               <strong>{{ mission.title }}</strong>
               <span>{{ mission.objective }}</span>
               <span class="chip-row">
@@ -172,7 +166,7 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
             <span>{{ selectedMission().title }}</span>
           </div>
           <div class="squad-drill-theater__body">
-            <p class="eyebrow">Active Drill</p>
+            <p class="eyebrow">Selected drill</p>
             <h3>{{ selectedMission().recommendation }}</h3>
             <div class="metric-grid">
               <div class="metric"><span class="metric__label">Target</span><strong class="metric__value">{{ diagnosticLabel(selectedMission().targetAspect) }}</strong></div>
@@ -185,7 +179,7 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
         @if (result(); as run) {
           <article class="squad-result" [class.squad-result--flawless]="run.outcome === 'flawless'">
             <div>
-              <p class="eyebrow">Outcome // {{ run.outcome }}</p>
+              <p class="eyebrow">Outcome · {{ run.outcome }}</p>
               <h3>{{ run.recap }}</h3>
               <p class="lead">{{ run.nextHook }}</p>
             </div>
@@ -200,19 +194,19 @@ async function loadMany(repo: DigimonRepository, ids: readonly number[]): Promis
 
       <div class="grid grid--wide">
         <article class="panel">
-          <h3>Squad Ideas</h3>
+          <h3>Team ideas</h3>
           @for (idea of ideas().slice(0, 4); track idea.digimonId) {
             <div class="idea-mini">
-              <strong>{{ idea.name }} // {{ idea.role }}</strong>
+              <strong>{{ idea.name }} · {{ idea.role }}</strong>
               <span>{{ idea.teamHook }}</span>
             </div>
           } @empty {
-            <p class="muted">No squad ideas yet.</p>
+            <p class="muted">No ideas yet.</p>
           }
         </article>
 
         <article class="panel">
-          <h3>Recent Squad Lab</h3>
+          <h3>Recent drills</h3>
           @for (run of history(); track run.id) {
             <p class="muted">{{ run.missionTitle }} - {{ run.outcome }} - {{ run.rewardBits }} bits - score {{ run.score }}</p>
           } @empty {
@@ -278,7 +272,7 @@ export class SquadLabPage {
     const digimon = await this.repo.getDigimon(id);
     this.members.update((members) => [...members, digimon].slice(0, 6));
     this.result.set(null);
-    this.message.set(`${digimon.name} entered the lab.`);
+    this.message.set(`${digimon.name} added to your team.`);
   }
 
   protected async addRandom(): Promise<void> {
@@ -289,7 +283,7 @@ export class SquadLabPage {
     const detail = await this.repo.getDigimon(pick.id);
     this.members.update((members) => [...members, detail].slice(0, 6));
     this.result.set(null);
-    this.message.set(`${detail.name} joined the formation.`);
+    this.message.set(`${detail.name} added to your team.`);
   }
 
   protected async loadPreset(kind: keyof typeof PRESETS): Promise<void> {
@@ -310,7 +304,7 @@ export class SquadLabPage {
       memberIds: ids,
       score: this.plan().score.total,
     });
-    this.message.set('Squad saved to Collection.');
+    this.message.set('Team saved to Collection.');
   }
 
   protected async runSelectedDrill(): Promise<void> {
@@ -328,7 +322,7 @@ export class SquadLabPage {
 }
 
 function presetLabel(kind: keyof typeof PRESETS): string {
-  if (kind === 'field') return 'Field Core';
-  if (kind === 'elite') return 'Elite Circuit';
-  return 'Balance Squad';
+  if (kind === 'field') return 'Field team';
+  if (kind === 'elite') return 'Elite team';
+  return 'Example team';
 }

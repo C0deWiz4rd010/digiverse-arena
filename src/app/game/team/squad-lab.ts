@@ -130,9 +130,9 @@ export function squadDiagnostics(team: Digimon[], roles = team.map(squadMemberRo
       skillRelay: 0,
       stress: 100,
       total: 0,
-      formation: 'Empty Lab',
+      formation: 'Empty team',
       openingChain: [],
-      warnings: ['Add Digimon before running Squad Lab drills.'],
+      warnings: ['Add Digimon before running team drills.'],
     };
   }
 
@@ -330,7 +330,7 @@ function riskForMember(role: SquadRole, stats: BattleStats, skillCount: number):
 
 function formationFor(roles: SquadMemberRole[], fields: string[], triangle: boolean): string {
   const dominantField = topValue(fields);
-  if (!roles.length) return 'Empty Lab';
+  if (!roles.length) return 'Empty team';
   if (triangle && dominantField) return `${dominantField} Triangle Formation`;
   if (roles.some((role) => role.role === 'Anchor') && roles.some((role) => role.role === 'Scout')) return 'Guard-Tempo Split';
   if (roles.filter((role) => role.role === 'Vanguard').length >= 2) return 'Burst Frontline';

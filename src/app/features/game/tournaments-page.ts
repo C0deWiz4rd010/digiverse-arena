@@ -59,20 +59,19 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
   template: `
     <section class="page tournament-page">
       <header class="page-head tournament-hero tournament-hero--broadcast">
-        <p class="eyebrow">// Tournaments</p>
-        <h2>Grand Circuit Tournament Mode</h2>
-        <p class="lead">Pick an event, lock a strategy, reveal the bracket round by round and draft the reward path after the final broadcast.</p>
+        <p class="eyebrow">Tournaments</p>
+        <h2>Tournaments</h2>
+        <p class="lead">Pick an event and a strategy, run the bracket, then reveal each round and claim a reward.</p>
         <div class="metric-grid">
           <div class="metric"><span class="metric__label">Events</span><strong class="metric__value">{{ tournaments.length }}</strong></div>
           <div class="metric"><span class="metric__label">Strategies</span><strong class="metric__value">{{ strategies.length }}</strong></div>
-          <div class="metric"><span class="metric__label">Reveal</span><strong class="metric__value">{{ revealedRounds() }}/{{ current()?.phases?.length ?? 0 }}</strong></div>
-          <div class="metric"><span class="metric__label">Loop</span><strong class="metric__value">Draft</strong></div>
+          <div class="metric"><span class="metric__label">Rounds shown</span><strong class="metric__value">{{ revealedRounds() }}/{{ current()?.phases?.length ?? 0 }}</strong></div>
         </div>
         <div class="tournament-loop">
-          <span>Pick Event</span>
-          <span>Lock Strategy</span>
-          <span>Reveal Rounds</span>
-          <span>Claim Reward</span>
+          <span>1. Pick event</span>
+          <span>2. Choose strategy</span>
+          <span>3. Reveal rounds</span>
+          <span>4. Claim reward</span>
         </div>
       </header>
 
@@ -92,7 +91,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
 
       <section class="tournament-command">
         <div>
-          <p class="eyebrow">Primed Event</p>
+          <p class="eyebrow">Selected event</p>
           <h3>{{ selectedTournament().name }}</h3>
           <p class="lead">{{ selectedTournament().tagline }}</p>
           <div class="chip-row">
@@ -103,13 +102,13 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
           </div>
         </div>
         <div>
-          <p class="eyebrow">Strategy Lock</p>
+          <p class="eyebrow">Strategy</p>
           <h3>{{ selectedStrategy().label }}</h3>
           <p class="lead">{{ selectedStrategy().stance }}</p>
           <div class="action-row">
             <button class="btn btn--primary" type="button" [disabled]="running()" (click)="run()">Run bracket</button>
             <button class="btn" type="button" [disabled]="!current() || revealComplete()" (click)="revealNext()">Reveal next round</button>
-            <button class="btn" type="button" [disabled]="!current()" (click)="revealAll()">Full broadcast</button>
+            <button class="btn" type="button" [disabled]="!current()" (click)="revealAll()">Reveal all</button>
           </div>
         </div>
       </section>
@@ -121,14 +120,14 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
       <section>
         <div class="section-head">
           <div>
-            <p class="eyebrow">Circuit Events</p>
-            <h3>Choose the arena story</h3>
+            <p class="eyebrow">Events</p>
+            <h3>Choose an event</h3>
           </div>
         </div>
         <div class="grid grid--wide tournament-grid">
           @for (tournament of tournaments; track tournament.id) {
             <article class="bracket-card tournament-card" [class.tournament-card--selected]="selectedTournament().id === tournament.id">
-              <p class="eyebrow">{{ tournament.sponsor }} // {{ tournament.format }}</p>
+              <p class="eyebrow">{{ tournament.sponsor }} · {{ tournament.format }}</p>
               <h3>{{ tournament.name }}</h3>
               <p class="lead">{{ tournament.tagline }}</p>
               <p class="muted">{{ tournament.description }}</p>
@@ -149,7 +148,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
                 }
               </div>
               <p class="muted">{{ tournament.rule }}</p>
-              <button class="btn" type="button" (click)="selectTournament(tournament)">Prime event</button>
+              <button class="btn" type="button" (click)="selectTournament(tournament)">Select</button>
             </article>
           }
         </div>
@@ -158,8 +157,8 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
       <section>
         <div class="section-head">
           <div>
-            <p class="eyebrow">Strategy Deck</p>
-            <h3>Pick the run modifier</h3>
+            <p class="eyebrow">Strategy</p>
+            <h3>Pick a strategy</h3>
           </div>
         </div>
         <div class="strategy-deck">
@@ -181,13 +180,13 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
       </section>
 
       @if (running()) {
-        <div class="empty tournament-loading">Charging broadcast gates...</div>
+        <div class="empty tournament-loading">Running tournament…</div>
       }
 
       @if (current(); as run) {
         <article id="tournament-results" class="tournament-broadcast" tabindex="-1">
           <div class="broadcast-stage">
-            <p class="eyebrow">{{ run.definition.sponsor }} // {{ run.strategy.label }}</p>
+            <p class="eyebrow">{{ run.definition.sponsor }} · {{ run.strategy.label }}</p>
             <h3>Champion: {{ displayChampion(run) }}</h3>
             <p class="lead">{{ broadcastSummary(run) }}</p>
             <div class="metric-grid">
@@ -226,8 +225,8 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
 
         <article class="prediction-slip">
           <div>
-            <p class="eyebrow">Prediction Slip</p>
-            <h3>Call the champion before the final gate</h3>
+            <p class="eyebrow">Your prediction</p>
+            <h3>Guess the champion before the final round</h3>
             <p class="lead">{{ predictionCopy(run) }}</p>
           </div>
           <div class="prediction-grid">
@@ -256,7 +255,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
 
         <div class="split tournament-theater">
           <article class="panel moment-panel">
-            <h3>Broadcast Moments</h3>
+            <h3>Highlights</h3>
             <div class="story-feed">
               @for (moment of visibleMoments(run); track moment.id) {
                 <button
@@ -279,7 +278,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
           </article>
 
           <article class="panel final-theater">
-            <p class="eyebrow">Match Spotlight</p>
+            <p class="eyebrow">Featured match</p>
             @if (spotlightMatch(run); as match) {
               <h3>{{ match.headline }}</h3>
               <div class="match-card__teams">
@@ -312,9 +311,9 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
 
         <article class="reward-draft">
           <div>
-            <p class="eyebrow">Reward Draft</p>
-            <h3>Pick one payout route</h3>
-            <p class="lead">Your choice writes local DigiCore mastery and gives the run a real finish.</p>
+            <p class="eyebrow">Rewards</p>
+            <h3>Pick one reward</h3>
+            <p class="lead">Your choice is saved to your progress and finishes the run.</p>
           </div>
           <div class="reward-grid">
             @for (reward of run.rewardOptions; track reward.id) {
@@ -337,8 +336,8 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
         <article class="panel bracket-board">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Bracket Board</p>
-              <h3>Round reveal</h3>
+              <p class="eyebrow">Bracket</p>
+              <h3>Rounds</h3>
             </div>
             <button class="btn" type="button" [disabled]="revealComplete()" (click)="revealNext()">Reveal next round</button>
           </div>
@@ -375,7 +374,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
                 }
               </div>
             } @else {
-              <div class="locked-round">Round {{ round }} locked. Reveal the broadcast to unlock these matches.</div>
+              <div class="locked-round">Round {{ round }} is locked. Reveal it to see these matches.</div>
             }
           }
         </article>

@@ -12,9 +12,9 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Collection</p>
-        <h2>Local command archive</h2>
-        <p class="lead">Favorites, notes, teams, Squad Lab drills, Scouter Duels, battle history, tournaments, field expeditions, skill forge runs, rival bounties, mini-games and DigiCore Mastery stay on this device.</p>
+        <p class="eyebrow">Collection</p>
+        <h2>Your saved progress</h2>
+        <p class="lead">Everything you save stays on this device — favorites, notes, teams and your history.</p>
       </header>
 
       <div class="metric-grid">
@@ -73,23 +73,23 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
         </article>
 
         <article class="panel">
-          <h3>Squad Lab</h3>
+          <h3>Drill history</h3>
           @for (run of squadDrillRuns(); track run.id) {
             <p class="muted">{{ run.missionTitle }} - {{ run.outcome }} - {{ run.rewardBits }} bits - score {{ run.score }}</p>
           } @empty {
-            <p class="muted">No Squad Lab drills yet.</p>
+            <p class="muted">No drills yet.</p>
           }
-          <a class="btn" routerLink="/team-builder">Open Squad Lab</a>
+          <a class="btn" routerLink="/team-builder">Open Team</a>
         </article>
 
         <article class="panel">
-          <h3>Scouter Duels</h3>
+          <h3>Compare plays</h3>
           @for (run of scouterDuelRuns(); track run.id) {
             <p class="muted">{{ run.scenarioTitle }} - {{ run.outcome }} - {{ run.predictedName }} vs winner {{ run.winnerName }} - {{ run.rewardBits }} bits</p>
           } @empty {
-            <p class="muted">No Scouter Duel reads yet.</p>
+            <p class="muted">No plays yet.</p>
           }
-          <a class="btn" routerLink="/compare">Open Scouter Duel</a>
+          <a class="btn" routerLink="/compare">Open Compare</a>
         </article>
 
         <article class="panel">
@@ -111,33 +111,33 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
         </article>
 
         <article class="panel">
-          <h3>Rival Bounties</h3>
+          <h3>Rivals</h3>
           @for (run of rivalRuns(); track run.id) {
             <p class="muted">{{ run.rivalName }} - {{ run.outcome }} - {{ run.rewardBits }} bits - {{ run.counterAttribute }}</p>
           } @empty {
-            <p class="muted">No rival bounties yet.</p>
+            <p class="muted">No rival battles yet.</p>
           }
-          <a class="btn" routerLink="/rivals">Open Rival Signal</a>
+          <a class="btn" routerLink="/rivals">Open Rivals</a>
         </article>
 
         <article class="panel">
-          <h3>Field Expeditions</h3>
+          <h3>Expeditions</h3>
           @for (run of expeditionRuns(); track run.id) {
             <p class="muted">{{ run.fieldName }} - {{ run.outcome }} - {{ run.rewardBits }} bits - score {{ run.score }}</p>
           } @empty {
-            <p class="muted">No field expeditions yet.</p>
+            <p class="muted">No expeditions yet.</p>
           }
-          <a class="btn" routerLink="/expeditions">Open Field Ops</a>
+          <a class="btn" routerLink="/expeditions">Open Expeditions</a>
         </article>
 
         <article class="panel">
-          <h3>Skill Forge</h3>
+          <h3>Skill Training</h3>
           @for (run of skillForgeRuns(); track run.id) {
             <p class="muted">{{ run.programTitle }} - {{ run.outcome }} - {{ run.rewardBits }} bits - score {{ run.score }}</p>
           } @empty {
-            <p class="muted">No skill forge runs yet.</p>
+            <p class="muted">No skill training yet.</p>
           }
-          <a class="btn" routerLink="/skill-forge">Open Skill Forge</a>
+          <a class="btn" routerLink="/skill-forge">Open Skill Training</a>
         </article>
 
         <article class="panel">
@@ -147,7 +147,7 @@ const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
           } @empty {
             <p class="muted">No mini-game runs yet.</p>
           }
-          <a class="btn" routerLink="/minigames">Open Arcade</a>
+          <a class="btn" routerLink="/minigames">Open Mini-Games</a>
         </article>
       </div>
     </section>

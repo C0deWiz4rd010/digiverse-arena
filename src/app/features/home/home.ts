@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { DigimonListItem } from '../../core/models/digimon';
 import { DigimonRepository } from '../../core/repositories/digimon-repository';
@@ -8,18 +8,14 @@ import { DigiButton } from '../../design-system/components/digi-button';
 import { DigiCard } from '../../design-system/components/digi-card';
 import { DigiErrorState } from '../../design-system/components/digi-error-state';
 import { DigiSkeleton } from '../../design-system/components/digi-skeleton';
-import {
-  campaignNextAction,
-  dailyEncounters,
-  questCompletion,
-  type DigiCoreQuest,
-  type EncounterDefinition,
-} from '../../game';
+import { questCompletion, type DigiCoreQuest } from '../../game';
 
-interface QuickAction {
-  label: string;
+interface Pillar {
   icon: string;
-  action: () => void;
+  title: string;
+  description: string;
+  cta: string;
+  route: string;
 }
 
 interface StatTile {
@@ -29,7 +25,7 @@ interface StatTile {
 
 const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
 
-/** Home / Dashboard: campaign command bridge with search, quests, encounters and daily signals. */
+/** Home / Dashboard: a simple entry point — search, three ways to play, today's goals. */
 @Component({
   selector: 'app-home',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,24 +43,32 @@ export class Home {
   protected readonly error = signal(false);
 
   protected readonly daily = signal<DigimonListItem | null>(null);
-  protected readonly dailySkill = signal<string | null>(null);
   protected readonly stats = signal<StatTile[]>([]);
   protected readonly quests = signal<DigiCoreQuest[]>([]);
-  protected readonly encounters = signal<EncounterDefinition[]>([]);
-  protected readonly nextAction = computed(() => campaignNextAction(this.quests()));
   protected readonly fallbackImage = FALLBACK_IMAGE;
 
-  protected readonly quickActions: QuickAction[] = [
-    { label: 'Open DigiDex', icon: 'DX', action: () => this.go('/dex') },
-    { label: 'Random Digimon', icon: 'RD', action: () => void this.randomDigimon() },
-    { label: 'Random Battle', icon: 'RB', action: () => this.go('/random-battle') },
-    { label: 'Rival Signal', icon: 'RV', action: () => this.go('/rivals') },
-    { label: 'Field Ops', icon: 'EX', action: () => this.go('/expeditions') },
-    { label: 'Skill Forge', icon: 'SF', action: () => this.go('/skill-forge') },
-    { label: 'Squad Lab', icon: 'SQ', action: () => this.go('/team-builder') },
-    { label: 'Scouter Duel', icon: 'SC', action: () => this.go('/compare') },
-    { label: 'Mini-Games', icon: 'MG', action: () => this.go('/minigames') },
-    { label: 'Nexus Lab', icon: 'NX', action: () => this.go('/nexus') },
+  protected readonly pillars: Pillar[] = [
+    {
+      icon: '📖',
+      title: 'Explore',
+      description: 'Browse every Digimon, their skills and fields.',
+      cta: 'Open DigiDex',
+      route: '/dex',
+    },
+    {
+      icon: '⚔️',
+      title: 'Battle',
+      description: 'Fight in the Arena, take on rivals and tournaments.',
+      cta: 'Enter Arena',
+      route: '/arena',
+    },
+    {
+      icon: '🛡️',
+      title: 'Build',
+      description: 'Assemble a team and train it to get stronger.',
+      cta: 'Build a Team',
+      route: '/team-builder',
+    },
   ];
 
   constructor() {
@@ -137,15 +141,9 @@ export class Home {
 
       const seed = dayIndex();
       this.quests.set(questBoard);
-      this.encounters.set(dailyEncounters(seed));
       const dailyIdx = seededIndex(seed, total);
       const dailyPage = await this.repo.getDigimonList({ page: dailyIdx, pageSize: 1 });
       this.daily.set(dailyPage.items[0] ?? null);
-
-      const skillList = await this.repo.getMeta('skill');
-      if (skillList.length) {
-        this.dailySkill.set(skillList[seededIndex(seed + 7, skillList.length)].name);
-      }
 
       this.loading.set(false);
     } catch {

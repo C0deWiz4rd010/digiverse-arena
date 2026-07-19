@@ -1,11 +1,9 @@
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero__grid" aria-hidden="true"></div>
-  <div class="hero__core" aria-hidden="true"></div>
-  <p class="hero__kicker">// DIGIVERSE ARENA</p>
-  <h2 id="hero-title" class="hero__title">Scan. Evolve. Battle.</h2>
+  <p class="hero__kicker">DigiVerse Arena</p>
+  <h2 id="hero-title" class="hero__title">Discover, battle and build with every Digimon.</h2>
   <p class="hero__subtitle">
-    A mobile-first DigiDex and browsergame powered by the DAPI. Explore every Digimon, build teams,
-    clear daily quests and push the DigiCore campaign forward.
+    Search the DigiDex, put together a team and jump into battle. Pick a starting point below.
   </p>
 
   <form class="hero__search" role="search" (submit)="onSearch($event)">
@@ -13,80 +11,67 @@
       class="hero__search-input"
       type="search"
       name="q"
-      placeholder="Search Digimon..."
+      placeholder="Search a Digimon by name..."
       aria-label="Search Digimon"
       [value]="query()"
       (input)="query.set($any($event.target).value)"
     />
     <digi-button type="submit" size="md" ariaLabel="Search">Search</digi-button>
   </form>
-</section>
-
-<section class="quick" aria-label="Quick actions">
-  @for (action of quickActions; track action.label) {
-    <button class="quick__btn" type="button" (click)="action.action()">
-      <span class="quick__icon" aria-hidden="true">{{ action.icon }}</span>
-      <span class="quick__label">{{ action.label }}</span>
-    </button>
-  }
+  <button class="hero__random" type="button" (click)="randomDigimon()">🎲 Surprise me</button>
 </section>
 
 @if (error()) {
   <digi-error-state
-    title="The DigiVerse is unreachable"
-    message="Could not reach the DAPI. Check your connection and try again."
+    title="Can't reach the DigiVerse"
+    message="Could not load data. Check your connection and try again."
     (retry)="load()"
   />
 } @else {
-  <section class="campaign-bridge" aria-labelledby="campaign-title">
-    <div class="campaign-bridge__head">
-      <div>
-        <p class="panel__label">// DigiCore Campaign</p>
-        <h3 id="campaign-title">Next action: {{ nextAction() }}</h3>
-      </div>
-      <button class="campaign-bridge__cta" type="button" (click)="go('/minigames')">Open Arcade</button>
-    </div>
-
-    <div class="quest-strip">
-      @for (quest of quests().slice(0, 4); track quest.id) {
-        <article class="quest-card" [class.quest-card--ready]="quest.status === 'claimable'" [class.quest-card--claimed]="quest.status === 'claimed'">
-          <div class="quest-card__top">
-            <span>{{ quest.track }}</span>
-            <strong>{{ questCompletion(quest) }}%</strong>
-          </div>
-          <h4>{{ quest.title }}</h4>
-          <p>{{ quest.description }}</p>
-          <div class="campaign-progress"><span [style.width.%]="questCompletion(quest)"></span></div>
-          <div class="chip-row">
-            <span class="chip">{{ quest.rewardBits }} bits</span>
-            <span class="chip chip--hot">+{{ quest.rewardMastery }} mastery</span>
-          </div>
-          <button class="btn" type="button" [disabled]="quest.status !== 'claimable'" (click)="claim(quest)">
-            {{ quest.status === 'claimed' ? 'Claimed' : 'Claim reward' }}
-          </button>
-        </article>
-      } @empty {
-        <div class="empty">Questboard is charging...</div>
-      }
-    </div>
-
-    <div class="encounter-strip">
-      @for (encounter of encounters(); track encounter.id) {
-        <article class="encounter-card" [class.encounter-card--volatile]="encounter.risk === 'volatile'">
-          <span class="eyebrow">{{ encounter.trigger }} // {{ encounter.risk }}</span>
-          <h4>{{ encounter.headline }}</h4>
-          <p>{{ encounter.detail }}</p>
-          <button class="btn btn--primary" type="button" (click)="go(encounter.route)">
-            {{ encounter.actionLabel }}
-          </button>
-        </article>
-      }
-    </div>
+  <section class="pillars" aria-label="Ways to play">
+    @for (pillar of pillars; track pillar.title) {
+      <button class="pillar" type="button" (click)="go(pillar.route)">
+        <span class="pillar__icon" aria-hidden="true">{{ pillar.icon }}</span>
+        <span class="pillar__title">{{ pillar.title }}</span>
+        <span class="pillar__desc">{{ pillar.description }}</span>
+        <span class="pillar__cta">{{ pillar.cta }} →</span>
+      </button>
+    }
   </section>
 
-  <div class="panels">
+  <div class="home-grid">
+    <section class="goals" aria-labelledby="goals-title">
+      <h3 id="goals-title" class="section-title">Today's goals</h3>
+      <div class="goals__list">
+        @for (quest of quests().slice(0, 3); track quest.id) {
+          <article
+            class="goal"
+            [class.goal--ready]="quest.status === 'claimable'"
+            [class.goal--claimed]="quest.status === 'claimed'"
+          >
+            <div class="goal__head">
+              <h4>{{ quest.title }}</h4>
+              <strong>{{ questCompletion(quest) }}%</strong>
+            </div>
+            <p>{{ quest.description }}</p>
+            <div class="goal__bar"><span [style.width.%]="questCompletion(quest)"></span></div>
+            <button
+              class="goal__btn"
+              type="button"
+              [disabled]="quest.status !== 'claimable'"
+              (click)="claim(quest)"
+            >
+              {{ quest.status === 'claimed' ? 'Claimed ✓' : 'Claim reward' }}
+            </button>
+          </article>
+        } @empty {
+          <p class="goals__empty">Loading today's goals…</p>
+        }
+      </div>
+    </section>
+
     <digi-card class="daily" [interactive]="!loading()" (click)="openDaily()">
-      <p class="panel__label">Daily Digimon</p>
+      <h3 class="section-title">Digimon of the day</h3>
       @if (loading()) {
         <digi-skeleton width="96px" height="96px" radius="var(--radius-md)" />
         <digi-skeleton width="60%" height="1rem" />
@@ -104,21 +89,9 @@
         <p class="daily__hint">Tap to open profile</p>
       }
     </digi-card>
-
-    <digi-card class="skill">
-      <p class="panel__label">Daily Skill</p>
-      @if (loading()) {
-        <digi-skeleton width="70%" height="1.4rem" />
-      } @else {
-        <p class="skill__name">{{ dailySkill() ?? 'No signal' }}</p>
-        <button class="skill__link" type="button" (click)="go('/skills')">
-          Open Skill Library
-        </button>
-      }
-    </digi-card>
   </div>
 
-  <section class="stats" aria-label="DigiVerse statistics">
+  <section class="stats" aria-label="The DigiVerse in numbers">
     @for (tile of stats(); track tile.label) {
       <div class="stats__tile">
         <span class="stats__value">{{ tile.value }}</span>

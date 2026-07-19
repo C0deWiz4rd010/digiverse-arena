@@ -10,7 +10,9 @@ test.describe('DigiVerse Arena smoke', () => {
     });
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Scan. Evolve. Battle.' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Discover, battle and build with every Digimon.' }),
+    ).toBeVisible();
     await expect(page.locator('.daily__img')).toBeVisible();
     await expectNoBrokenVisibleImages(page);
 
@@ -21,7 +23,7 @@ test.describe('DigiVerse Arena smoke', () => {
     await page.goto('/dex/1');
     await expect(page.locator('.detail-hero')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Agumon', exact: true })).toBeVisible();
-    await expect(page.getByText('Idea Deck')).toBeVisible();
+    await expect(page.getByText('Build tips')).toBeVisible();
     await page.getByRole('button', { name: 'Favorite' }).click();
     await page.getByPlaceholder('Add a build idea').fill('Starter anchor for campaign smoke.');
     await page.getByRole('button', { name: 'Save note' }).click();
@@ -29,21 +31,21 @@ test.describe('DigiVerse Arena smoke', () => {
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/minigames');
-    await expect(page.getByRole('heading', { name: 'Mini-Games from live DAPI signals' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Test your Digimon knowledge' })).toBeVisible();
     await page.locator('.choice-card').first().click();
     await expect(page.getByRole('status')).toBeVisible();
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/rivals');
-    await expect(page.getByRole('heading', { name: 'Daily Nemesis Bounty' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: "Today's rival" })).toBeVisible();
     await expect(page.locator('.rival-theater')).toBeVisible();
-    await page.getByRole('button', { name: 'Run bounty duel' }).click();
+    await page.getByRole('button', { name: 'Battle rival' }).click();
     await expect(page.locator('.rival-result')).toBeVisible();
     await expect(page.locator('.rival-result')).toContainText('Counter read');
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/expeditions');
-    await expect(page.getByRole('heading', { name: 'Field Expedition Routes' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Send your team on expeditions' })).toBeVisible();
     await expect(page.locator('.expedition-theater')).toBeVisible();
     await page.getByRole('button', { name: 'Run expedition' }).click();
     await expect(page.locator('.expedition-result')).toBeVisible();
@@ -51,7 +53,7 @@ test.describe('DigiVerse Arena smoke', () => {
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/skill-forge');
-    await expect(page.getByRole('heading', { name: 'Combo Training Dojo' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Practise skill combos' })).toBeVisible();
     await expect(page.locator('.forge-theater')).toBeVisible();
     await page.getByRole('button', { name: 'Run forge drill' }).click();
     await expect(page.locator('.forge-result')).toBeVisible();
@@ -59,21 +61,21 @@ test.describe('DigiVerse Arena smoke', () => {
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/team-builder');
-    await expect(page.getByRole('heading', { name: 'Squad Lab', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Build your team', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Stable Link|Prime Circuit|Patch Link|Apex Sync|Static Link/ })).toBeVisible();
-    await page.getByRole('button', { name: 'Run squad drill' }).click();
+    await page.getByRole('button', { name: 'Run drill' }).click();
     await expect(page.locator('.squad-result')).toBeVisible();
     await expect(page.locator('.squad-result')).toContainText('Outcome');
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/nexus');
-    await expect(page.getByRole('heading', { name: 'Protocol lab for team chemistry' })).toBeVisible();
-    await page.getByRole('button', { name: 'Field Core' }).click();
-    await expect(page.getByText('Nexus Contracts')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'How well your team works together' })).toBeVisible();
+    await page.getByRole('button', { name: 'Field', exact: true }).click();
+    await expect(page.getByText('Challenges')).toBeVisible();
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/compare');
-    await expect(page.getByRole('heading', { name: 'Scouter Duel', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compare & predict', exact: true })).toBeVisible();
     await expect(page.locator('.scouter-card').first()).toBeVisible();
     await page.locator('.scouter-card').first().getByRole('button', { name: /Call/ }).click();
     await expect(page.locator('.scouter-result')).toBeVisible();
@@ -81,7 +83,7 @@ test.describe('DigiVerse Arena smoke', () => {
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/arena');
-    await expect(page.getByRole('heading', { name: 'Local-first PvE command battles' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Battle against the computer' })).toBeVisible();
     await page.getByRole('button', { name: 'Start battle' }).first().click();
     await expect(page.getByRole('heading', { name: /Stable Link|Prime Circuit|Patch Link|Apex Sync|Static Link/ })).toBeVisible();
     await expect(page.locator('.battle-stage')).toBeVisible();
@@ -89,14 +91,14 @@ test.describe('DigiVerse Arena smoke', () => {
     await expectNoBrokenVisibleImages(page);
 
     await page.goto('/tournaments');
-    await expect(page.getByRole('heading', { name: 'Grand Circuit Tournament Mode' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tournaments', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Nexus Overdrive' }).click();
     await page.getByRole('button', { name: 'Run bracket' }).click();
     await expect(page.getByText('Champion: Signal hidden')).toBeVisible();
     await page.locator('.prediction-card').first().click();
     await expect(page.getByRole('status')).toContainText('Prediction locked');
-    await expect(page.getByRole('heading', { name: 'Broadcast Moments' })).toBeVisible();
-    await expect(page.getByText('Match Spotlight')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Highlights' })).toBeVisible();
+    await expect(page.getByText('Featured match')).toBeVisible();
     await page.getByRole('button', { name: 'Reveal next round' }).first().click();
     await expect(page.locator('text=Champion:')).toBeVisible();
     await page.getByRole('button', { name: 'Claim prediction bonus' }).click();
@@ -110,11 +112,11 @@ test.describe('DigiVerse Arena smoke', () => {
     await page.goto('/collection');
     await expect(page.getByRole('heading', { name: 'Favorites' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Notes' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Rival Bounties' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Field Expeditions' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Skill Forge', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Squad Lab', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Scouter Duels' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Rivals' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Expeditions' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Skill Training', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Drill history', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compare plays' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Mini-Games' })).toBeVisible();
     await expect(page.getByText('Starter anchor for campaign smoke.')).toBeVisible();
     await expectNoBrokenVisibleImages(page);

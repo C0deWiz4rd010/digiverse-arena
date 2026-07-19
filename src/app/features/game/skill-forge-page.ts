@@ -28,21 +28,21 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
   template: `
     <section class="page forge-page">
       <header class="page-head tournament-hero forge-hero">
-        <p class="eyebrow">// Skill Forge</p>
-        <h2>Combo Training Dojo</h2>
-        <p class="lead">Use live DAPI skill metadata to forge combo chains, train team roles and bank skill mastery.</p>
+        <p class="eyebrow">Skill Training</p>
+        <h2>Practise skill combos</h2>
+        <p class="lead">Pick a program, see how well your team fits it, then run a drill to earn skill rewards.</p>
         <div class="metric-grid">
           <div class="metric"><span class="metric__label">Programs</span><strong class="metric__value">{{ programs().length }}</strong></div>
-          <div class="metric"><span class="metric__label">Combo Fit</span><strong class="metric__value">{{ fit().total }}%</strong></div>
-          <div class="metric"><span class="metric__label">Winrate</span><strong class="metric__value">{{ winRate() }}%</strong></div>
-          <div class="metric"><span class="metric__label">History</span><strong class="metric__value">{{ history().length }}</strong></div>
+          <div class="metric"><span class="metric__label">Combo fit</span><strong class="metric__value">{{ fit().total }}%</strong></div>
+          <div class="metric"><span class="metric__label">Win rate</span><strong class="metric__value">{{ winRate() }}%</strong></div>
+          <div class="metric"><span class="metric__label">Runs</span><strong class="metric__value">{{ history().length }}</strong></div>
         </div>
       </header>
 
       @if (loading()) {
-        <div class="empty">Loading Skill Forge programs...</div>
+        <div class="empty">Loading programs…</div>
       } @else if (error()) {
-        <div class="empty">Skill metadata could not be loaded. Retry the Forge.</div>
+        <div class="empty">Could not load programs. Please try again.</div>
       } @else if (selected(); as program) {
         <div class="forge-grid">
           @for (entry of programs(); track entry.id) {
@@ -53,7 +53,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
               [class.forge-card--high]="entry.risk === 'high'"
               (click)="select(entry)"
             >
-              <span class="eyebrow">{{ entry.kind }} // {{ entry.risk }}</span>
+              <span class="eyebrow">{{ entry.kind }} · {{ entry.risk }}</span>
               <strong>{{ entry.title }}</strong>
               <span>{{ entry.objective }}</span>
               <span class="chip chip--hot">{{ entry.rewardBits }} bits</span>
@@ -67,7 +67,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             <div class="forge-core__rings" aria-hidden="true"></div>
           </div>
           <div class="forge-theater__body">
-            <p class="eyebrow">{{ program.kind }} // {{ program.targetTag }}</p>
+            <p class="eyebrow">{{ program.kind }} · {{ program.targetTag }}</p>
             <h3>{{ program.title }}</h3>
             <p class="lead">{{ program.objective }}</p>
             <p class="muted">Required accuracy {{ program.requiredAccuracy }}. Risk {{ program.risk }}.</p>
@@ -78,15 +78,15 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             </div>
             <div class="action-row">
               <button class="btn btn--primary" type="button" [disabled]="running()" (click)="run()">Run forge drill</button>
-              <button class="btn" type="button" [disabled]="running()" (click)="reroll()">Reroll programs</button>
-              <a class="btn" routerLink="/skills">Open Skill Library</a>
+              <button class="btn" type="button" [disabled]="running()" (click)="reroll()">New programs</button>
+              <a class="btn" routerLink="/skills">Open Skills</a>
             </div>
           </div>
         </article>
 
         <div class="split">
           <article class="panel">
-            <p class="eyebrow">Combo Fit</p>
+            <p class="eyebrow">Combo fit</p>
             <h3>{{ fit().total }}% chain confidence</h3>
             <div class="stat-list">
               <div class="bar"><div class="bar__head"><span>Tag Match</span><strong>{{ fit().tagMatch }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="fit().tagMatch"></div></div></div>
@@ -100,7 +100,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
           </article>
 
           <article class="panel">
-            <h3>Training Team</h3>
+            <h3>Your team</h3>
             <div class="forge-roster">
               @for (member of team(); track member.id) {
                 <a class="favorite-token" [routerLink]="['/dex', member.id]">
@@ -115,7 +115,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
         @if (result(); as run) {
           <article class="forge-result" [class.forge-result--perfect]="run.outcome === 'perfect'">
             <div>
-              <p class="eyebrow">Outcome // {{ run.outcome }}</p>
+              <p class="eyebrow">Outcome · {{ run.outcome }}</p>
               <h3>{{ run.recap }}</h3>
               <p class="lead">{{ run.nextHook }}</p>
               <div class="chip-row">

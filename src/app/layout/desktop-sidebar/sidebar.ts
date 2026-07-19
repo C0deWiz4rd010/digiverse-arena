@@ -7,24 +7,46 @@ interface NavItem {
   icon: string;
 }
 
-/** Desktop sidebar navigation (hidden on mobile, where the bottom nav is used). */
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+/** Desktop sidebar navigation, grouped into clear sections (hidden on mobile). */
 @Component({
   selector: 'app-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive],
   template: `
     <nav class="sidebar" aria-label="Sections">
-      @for (item of items; track item.path) {
-        <a
-          class="sidebar__item"
-          [routerLink]="item.path"
-          routerLinkActive="sidebar__item--active"
-          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-        >
-          <span class="sidebar__icon" aria-hidden="true">{{ item.icon }}</span>
-          <span class="sidebar__label">{{ item.label }}</span>
-        </a>
+      <a
+        class="sidebar__item"
+        routerLink="/"
+        routerLinkActive="sidebar__item--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span class="sidebar__icon" aria-hidden="true">🏠</span>
+        <span class="sidebar__label">Home</span>
+      </a>
+
+      @for (group of groups; track group.title) {
+        <div class="sidebar__group">
+          <p class="sidebar__group-title">{{ group.title }}</p>
+          @for (item of group.items; track item.path) {
+            <a class="sidebar__item" [routerLink]="item.path" routerLinkActive="sidebar__item--active">
+              <span class="sidebar__icon" aria-hidden="true">{{ item.icon }}</span>
+              <span class="sidebar__label">{{ item.label }}</span>
+            </a>
+          }
+        </div>
       }
+
+      <div class="sidebar__group">
+        <a class="sidebar__item" routerLink="/settings" routerLinkActive="sidebar__item--active">
+          <span class="sidebar__icon" aria-hidden="true">⚙️</span>
+          <span class="sidebar__label">Settings</span>
+        </a>
+      </div>
     </nav>
   `,
   styles: `
@@ -39,6 +61,21 @@ interface NavItem {
         padding: var(--space-4) var(--space-2);
       }
     }
+    .sidebar__group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: var(--space-4);
+    }
+    .sidebar__group-title {
+      margin: 0 0 var(--space-1);
+      padding: 0 var(--space-3);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
     .sidebar__item {
       display: flex;
       align-items: center;
@@ -47,6 +84,7 @@ interface NavItem {
       border-radius: var(--radius-md);
       color: var(--text-muted);
       text-decoration: none;
+      font-size: 0.9rem;
       transition:
         background 0.18s ease,
         color 0.18s ease;
@@ -62,30 +100,44 @@ interface NavItem {
     .sidebar__icon {
       width: 1.5rem;
       text-align: center;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      font-weight: 800;
+      font-size: 1rem;
+      line-height: 1;
     }
   `,
 })
 export class Sidebar {
-  protected readonly items: NavItem[] = [
-    { path: '/', label: 'Home', icon: 'HM' },
-    { path: '/dex', label: 'DigiDex', icon: 'DX' },
-    { path: '/evolution-lab', label: 'Evolution Lab', icon: 'EV' },
-    { path: '/fields', label: 'Fields', icon: 'FD' },
-    { path: '/expeditions', label: 'Expeditions', icon: 'EX' },
-    { path: '/skills', label: 'Skills', icon: 'SK' },
-    { path: '/skill-forge', label: 'Skill Forge', icon: 'SF' },
-    { path: '/team-builder', label: 'Squad Lab', icon: 'SQ' },
-    { path: '/nexus', label: 'Nexus Lab', icon: 'NX' },
-    { path: '/arena', label: 'Arena', icon: 'AR' },
-    { path: '/random-battle', label: 'Random Battle', icon: 'RB' },
-    { path: '/rivals', label: 'Rival Signal', icon: 'RV' },
-    { path: '/minigames', label: 'Mini-Games', icon: 'MG' },
-    { path: '/tournaments', label: 'Tournaments', icon: 'TR' },
-    { path: '/compare', label: 'Scouter Duel', icon: 'SC' },
-    { path: '/collection', label: 'Collection', icon: 'CL' },
-    { path: '/settings', label: 'Settings', icon: 'ST' },
+  protected readonly groups: NavGroup[] = [
+    {
+      title: 'Explore',
+      items: [
+        { path: '/dex', label: 'DigiDex', icon: '📖' },
+        { path: '/fields', label: 'Fields', icon: '🌐' },
+        { path: '/skills', label: 'Skills', icon: '✨' },
+        { path: '/compare', label: 'Compare', icon: '⚖️' },
+      ],
+    },
+    {
+      title: 'Battle',
+      items: [
+        { path: '/arena', label: 'Arena', icon: '⚔️' },
+        { path: '/random-battle', label: 'Quick Battle', icon: '🎲' },
+        { path: '/rivals', label: 'Rivals', icon: '🎯' },
+        { path: '/tournaments', label: 'Tournaments', icon: '🏆' },
+        { path: '/expeditions', label: 'Expeditions', icon: '🧭' },
+      ],
+    },
+    {
+      title: 'Build',
+      items: [
+        { path: '/team-builder', label: 'Team', icon: '🛡️' },
+        { path: '/skill-forge', label: 'Skill Training', icon: '🔧' },
+        { path: '/nexus', label: 'Synergy', icon: '🔗' },
+        { path: '/collection', label: 'Collection', icon: '📁' },
+      ],
+    },
+    {
+      title: 'Fun',
+      items: [{ path: '/minigames', label: 'Mini-Games', icon: '🕹️' }],
+    },
   ];
 }

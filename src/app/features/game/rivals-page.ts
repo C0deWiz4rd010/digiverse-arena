@@ -55,21 +55,21 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
   template: `
     <section class="page rival-page">
       <header class="page-head tournament-hero rival-hero">
-        <p class="eyebrow">// Rival Signal</p>
-        <h2>Daily Nemesis Bounty</h2>
-        <p class="lead">Scout the DAPI rival, call the counter lane, run the duel and archive the bounty result.</p>
+        <p class="eyebrow">Rivals</p>
+        <h2>Today's rival</h2>
+        <p class="lead">A new rival appears each day. Guess the best counter, then battle to earn a reward.</p>
         <div class="metric-grid">
           <div class="metric"><span class="metric__label">Threat</span><strong class="metric__value">{{ signal()?.threat ?? 0 }}</strong></div>
-          <div class="metric"><span class="metric__label">Bounty</span><strong class="metric__value">{{ signal()?.bountyBits ?? 0 }}</strong></div>
-          <div class="metric"><span class="metric__label">Winrate</span><strong class="metric__value">{{ winRate() }}%</strong></div>
-          <div class="metric"><span class="metric__label">History</span><strong class="metric__value">{{ history().length }}</strong></div>
+          <div class="metric"><span class="metric__label">Reward</span><strong class="metric__value">{{ signal()?.bountyBits ?? 0 }}</strong></div>
+          <div class="metric"><span class="metric__label">Win rate</span><strong class="metric__value">{{ winRate() }}%</strong></div>
+          <div class="metric"><span class="metric__label">Battles</span><strong class="metric__value">{{ history().length }}</strong></div>
         </div>
       </header>
 
       @if (loading()) {
-        <div class="empty">Tracing rival signal...</div>
+        <div class="empty">Loading rival…</div>
       } @else if (error()) {
-        <div class="empty">The rival signal collapsed. Retry from Home or refresh the route.</div>
+        <div class="empty">Could not load the rival. Please try again.</div>
       } @else if (signal(); as s) {
         <article class="rival-theater" [class.rival-theater--clear]="duel()?.outcome === 'clear'">
           <div class="rival-theater__image">
@@ -77,7 +77,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             <div class="rival-threat" aria-hidden="true">{{ s.tier }}</div>
           </div>
           <div class="rival-theater__body">
-            <p class="eyebrow">{{ s.attribute }} // {{ s.field }}</p>
+            <p class="eyebrow">{{ s.attribute }} · {{ s.field }}</p>
             <h3>{{ s.rivalName }}</h3>
             <p class="lead">{{ s.taunt }}</p>
             <div class="chip-row">
@@ -96,7 +96,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
 
         <div class="split">
           <article class="panel">
-            <p class="eyebrow">Scout Read</p>
+            <p class="eyebrow">Your guess</p>
             <h3>{{ s.scoutQuestion }}</h3>
             <div class="choice-grid">
               @for (choice of s.scoutChoices; track choice) {
@@ -112,14 +112,14 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
               }
             </div>
             <div class="action-row">
-              <button class="btn btn--primary" type="button" [disabled]="running()" (click)="duelRival()">Run bounty duel</button>
-              <button class="btn" type="button" [disabled]="running()" (click)="rematch()">Rematch signal</button>
-              <a class="btn" routerLink="/team-builder">Tune team</a>
+              <button class="btn btn--primary" type="button" [disabled]="running()" (click)="duelRival()">Battle rival</button>
+              <button class="btn" type="button" [disabled]="running()" (click)="rematch()">New rival</button>
+              <a class="btn" routerLink="/team-builder">Open Team</a>
             </div>
           </article>
 
           <article class="panel">
-            <p class="eyebrow">Bounty Phases</p>
+            <p class="eyebrow">Phases</p>
             <div class="story-feed">
               @for (phase of s.phases; track phase.id) {
                 <div class="story-beat">
@@ -137,7 +137,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
 
         <section class="split">
           <article class="panel">
-            <h3>Your Counter Team</h3>
+            <h3>Your team</h3>
             <div class="rival-roster">
               @for (member of playerTeam(); track member.id) {
                 <a class="favorite-token" [routerLink]="['/dex', member.id]">
@@ -149,7 +149,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
           </article>
 
           <article class="panel">
-            <h3>Rival Cell</h3>
+            <h3>Rival team</h3>
             <div class="rival-roster">
               @for (member of enemyTeam(); track member.id) {
                 <a class="favorite-token" [routerLink]="['/dex', member.id]">
@@ -164,7 +164,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
         @if (duel(); as d) {
           <article class="rival-result" [class.rival-result--clear]="d.outcome === 'clear'">
             <div>
-              <p class="eyebrow">Outcome // {{ d.outcome }}</p>
+              <p class="eyebrow">Outcome · {{ d.outcome }}</p>
               <h3>{{ d.recap }}</h3>
               <p class="lead">{{ d.nextHook }}</p>
               <div class="chip-row">
@@ -184,20 +184,20 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
         <article class="panel">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Bounty Archive</p>
-              <h3>Recent rival runs</h3>
+              <p class="eyebrow">History</p>
+              <h3>Recent battles</h3>
             </div>
             <a class="btn" routerLink="/collection">Open Collection</a>
           </div>
           <div class="grid">
             @for (run of history(); track run.id) {
               <div class="metric">
-                <span class="metric__label">{{ run.outcome }} // {{ run.counterAttribute }}</span>
+                <span class="metric__label">{{ run.outcome }} · {{ run.counterAttribute }}</span>
                 <strong class="metric__value">{{ run.rivalName }}</strong>
                 <p class="muted">{{ run.recap }}</p>
               </div>
             } @empty {
-              <p class="muted">No rival bounties archived yet.</p>
+              <p class="muted">No rival battles yet.</p>
             }
           </div>
         </article>

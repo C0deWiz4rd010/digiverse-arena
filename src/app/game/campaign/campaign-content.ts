@@ -190,9 +190,9 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
     },
     {
       id: `squad-${seed}`,
-      title: 'Squad Lab Spark',
+      title: 'Build a Team',
       track: 'tactics',
-      description: 'Build or save teams that can answer a rival bracket.',
+      description: 'Build or save a team that can take on a rival.',
       objectives: [objective('team', 'saved-team', 1, baseFacts.teams, 'Save or update 1 team.')],
       rewardBits: 34,
       rewardMastery: 8,
@@ -200,40 +200,40 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
     },
     {
       id: `squad-drill-${seed}`,
-      title: 'Squad Lab Drill',
+      title: 'Team Drill',
       track: 'tactics',
-      description: 'Run a Squad Lab drill and turn team theory into a saved training result.',
-      objectives: [objective('squad-drill', 'training-run', 1, baseFacts.squadDrills, 'Complete 1 Squad Lab drill.')],
+      description: 'Run a team drill and save the training result.',
+      objectives: [objective('squad-drill', 'training-run', 1, baseFacts.squadDrills, 'Complete 1 team drill.')],
       rewardBits: 40,
       rewardMastery: 9,
       status: 'active',
     },
     {
       id: `scouter-${seed}`,
-      title: 'Scouter Duel Read',
+      title: 'Compare Winner',
       track: 'tactics',
-      description: 'Call one Scouter Duel winner and archive the read.',
-      objectives: [objective('scouter-duel', 'prediction', 1, baseFacts.scouterDuels, 'Resolve 1 Scouter Duel prediction.')],
+      description: 'Guess one winner on the Compare page.',
+      objectives: [objective('scouter-duel', 'prediction', 1, baseFacts.scouterDuels, 'Make 1 Compare prediction.')],
       rewardBits: 36,
       rewardMastery: 8,
       status: 'active',
     },
     {
       id: `arena-${seed}`,
-      title: 'Arena Circuit Ticket',
+      title: 'Arena Battle',
       track: 'arena',
-      description: 'Turn DAPI data into a real command battle.',
-      objectives: [objective('arena', 'battle', 1, baseFacts.battles, 'Finish 1 Arena or Random Battle.')],
+      description: 'Win a battle against the computer.',
+      objectives: [objective('arena', 'battle', 1, baseFacts.battles, 'Finish 1 Arena or Quick Battle.')],
       rewardBits: 42,
       rewardMastery: 9,
       status: 'active',
     },
     {
       id: `rival-${seed}`,
-      title: 'Rival Signal Bounty',
+      title: 'Beat a Rival',
       track: 'tactics',
-      description: 'Scout the daily rival, call the counter lane and resolve the bounty duel.',
-      objectives: [objective('rival', 'bounty', 1, baseFacts.rivals, 'Clear 1 Rival Signal bounty.')],
+      description: 'Scout the daily rival, guess the counter and win the battle.',
+      objectives: [objective('rival', 'bounty', 1, baseFacts.rivals, 'Beat 1 rival.')],
       rewardBits: 46,
       rewardMastery: 10,
       status: 'active',
@@ -253,9 +253,9 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
     },
     {
       id: `field-${seed}`,
-      title: 'Field Expedition Route',
+      title: 'Expedition Route',
       track: 'field',
-      description: 'Run a Field Ops route and archive a discovery from the DAPI biome map.',
+      description: 'Send your team on an expedition and record a discovery.',
       objectives: [objective('expedition', 'field-route', 1, baseFacts.expeditions, 'Complete or recover 1 Field Expedition.')],
       rewardBits: 38,
       rewardMastery: 9,
@@ -263,9 +263,9 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
     },
     {
       id: `mini-${seed}`,
-      title: 'Mini-Game Pulse',
+      title: 'Mini-Game',
       track: 'skill',
-      description: 'Clear a quick DAPI challenge for a small mastery burst.',
+      description: 'Clear a quick mini-game for a small reward.',
       objectives: [objective('minigame', 'challenge', 1, baseFacts.miniGames, 'Clear 1 Mini-Game challenge.')],
       rewardBits: 30,
       rewardMastery: 7,
@@ -273,10 +273,10 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
     },
     {
       id: `forge-${seed}`,
-      title: 'Skill Forge Chain',
+      title: 'Skill Training',
       track: 'skill',
-      description: 'Run one Skill Forge drill and archive the combo chain.',
-      objectives: [objective('forge', 'skill-chain', 1, baseFacts.skillForges, 'Complete 1 Skill Forge drill.')],
+      description: 'Run one skill training drill and save the combo.',
+      objectives: [objective('forge', 'skill-chain', 1, baseFacts.skillForges, 'Complete 1 skill training drill.')],
       rewardBits: 36,
       rewardMastery: 9,
       status: 'active',
@@ -287,7 +287,7 @@ export function dailyQuests(seed = dayIndex(), facts: Partial<CampaignFacts> = {
 
 export function campaignNextAction(quests: DigiCoreQuest[]): string {
   const active = quests.find((quest) => quest.status !== 'claimed');
-  if (!active) return 'All daily signals are cleared. Start a tournament run.';
+  if (!active) return 'All daily goals are done. Try a tournament!';
   const objectiveText = active.objectives.find((objective) => objective.progress < objective.required)?.description;
   return objectiveText ?? `Claim ${active.title}.`;
 }

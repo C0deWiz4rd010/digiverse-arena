@@ -6,7 +6,6 @@ import { DigimonRepository } from '../../core/repositories/digimon-repository';
 import { GameProgressRepository } from '../../core/repositories/game-progress-repository';
 import {
   ARENA_MODES,
-  TOURNAMENTS,
   analyzeDigiLink,
   arenaIntel,
   battleSummary,
@@ -17,14 +16,10 @@ import {
   deriveStats,
   generateNexusContracts,
   ideaForDigimon,
-  ideasForTeam,
   questCompletion,
   rarityScore,
-  runTournament,
-  scoreTeam,
   simulateBattle,
   statTotal,
-  tournamentSummary,
   type ArenaModeDefinition,
   type ArenaIntel,
   type BattleEvent,
@@ -34,9 +29,6 @@ import {
   type DigimonIdea,
   type EncounterDefinition,
   type NexusContract,
-  type TournamentDefinition,
-  type TournamentMatch,
-  type TournamentRun,
 } from '../../game';
 
 const FALLBACK_IMAGE = 'assets/placeholders/digimon-fallback.svg';
@@ -81,13 +73,13 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// DigiDex</p>
-        <h2>Search the live DAPI roster</h2>
-        <p class="lead">Fast cached list browsing with battle-ready data hooks, image fallbacks and scan mastery.</p>
+        <p class="eyebrow">DigiDex</p>
+        <h2>Browse every Digimon</h2>
+        <p class="lead">Search by name and filter by level or attribute. Tap a card to see full details.</p>
       </header>
 
       <form class="filters" (submit)="search($event)">
-        <input class="input" type="search" placeholder="Search Digimon" [value]="query()" (input)="query.set($any($event.target).value)" />
+        <input class="input" type="search" placeholder="Search by name" [value]="query()" (input)="query.set($any($event.target).value)" />
         <select class="select" [value]="level()" (change)="level.set($any($event.target).value)">
           <option value="">Any level</option>
           @for (entry of levels(); track entry.id) {
@@ -100,20 +92,16 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             <option [value]="entry.name">{{ entry.name }}</option>
           }
         </select>
-        <label class="check"><input type="checkbox" [checked]="exact()" (change)="exact.set($any($event.target).checked)" /> Exact</label>
-        <button class="btn btn--primary" type="submit">Scan</button>
+        <label class="check"><input type="checkbox" [checked]="exact()" (change)="exact.set($any($event.target).checked)" /> Exact match</label>
+        <button class="btn btn--primary" type="submit">Search</button>
       </form>
 
       @if (loading()) {
-        <div class="empty">Loading DAPI data...</div>
+        <div class="empty">Loading Digimon…</div>
       } @else if (error()) {
-        <div class="empty">DAPI could not be reached. Retry the scan.</div>
+        <div class="empty">Could not load data. Please try again.</div>
       } @else {
-        <div class="metric-grid">
-          <div class="metric"><span class="metric__label">Results</span><strong class="metric__value">{{ total() }}</strong></div>
-          <div class="metric"><span class="metric__label">Page</span><strong class="metric__value">{{ page() + 1 }}</strong></div>
-          <div class="metric"><span class="metric__label">DigiCore</span><strong class="metric__value">+scan</strong></div>
-        </div>
+        <p class="muted">{{ total() }} Digimon found · page {{ page() + 1 }}</p>
         <div class="grid">
           @for (item of items(); track item.id) {
             <article class="monster-card">
@@ -121,8 +109,8 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
                 <img [src]="item.image || fallbackImage" [alt]="item.name" loading="lazy" width="180" height="150" (error)="onImageError($event)" />
               </a>
               <h3 class="monster-card__title">{{ item.name }}</h3>
-              <div class="chip-row"><span class="chip">#{{ item.id }}</span><span class="chip chip--hot">Battle data ready</span></div>
-              <a class="btn" [routerLink]="['/dex', item.id]">Open profile</a>
+              <div class="chip-row"><span class="chip">#{{ item.id }}</span></div>
+              <a class="btn" [routerLink]="['/dex', item.id]">View details</a>
             </article>
           }
         </div>
@@ -216,7 +204,7 @@ export class DigiDexPage {
             <img [src]="d.image || fallbackImage" [alt]="d.name" width="220" height="220" (error)="onImageError($event)" />
           </div>
           <div>
-            <p class="eyebrow">// Profile #{{ d.id }}</p>
+            <p class="eyebrow">#{{ d.id }}</p>
             <h2>{{ d.name }}</h2>
             <p class="lead">{{ description(d) }}</p>
             <div class="chip-row">
@@ -225,26 +213,24 @@ export class DigiDexPage {
               @if (d.xAntibody) { <span class="chip chip--hot">X-Antibody</span> }
             </div>
             <div class="action-row">
-              <a class="btn btn--primary" routerLink="/arena">Start arena</a>
-              <a class="btn" [routerLink]="['/compare']" [queryParams]="{ ids: d.id + ',1,2' }">Compare</a>
-              <a class="btn" routerLink="/team-builder">Open Squad Lab</a>
-              <a class="btn" routerLink="/minigames">Profile challenge</a>
-              <button class="btn btn--accent" type="button" (click)="toggleFavorite(d)">
-                {{ favorite() ? 'Favorited' : 'Favorite' }}
+              <button class="btn btn--primary" type="button" (click)="toggleFavorite(d)">
+                {{ favorite() ? '★ Favorited' : '☆ Favorite' }}
               </button>
+              <a class="btn" [routerLink]="['/compare']" [queryParams]="{ ids: d.id + ',1,2' }">Compare</a>
+              <a class="btn" routerLink="/team-builder">Add to team</a>
             </div>
           </div>
         </div>
 
         @if (idea(); as idea) {
           <article class="panel idea-card idea-card--wide">
-            <p class="eyebrow">Idea Deck // {{ idea.role }}</p>
-            <h3>{{ idea.name }} build plan</h3>
+            <p class="eyebrow">Build tips</p>
+            <h3>How to play {{ idea.name }}</h3>
             <div class="grid">
-              <div class="metric"><span class="metric__label">Build</span><strong class="metric__value">{{ idea.buildHint }}</strong></div>
-              <div class="metric"><span class="metric__label">Team Hook</span><strong class="metric__value">{{ idea.teamHook }}</strong></div>
-              <div class="metric"><span class="metric__label">Field Hook</span><strong class="metric__value">{{ idea.fieldHook }}</strong></div>
-              <div class="metric"><span class="metric__label">Rival Hook</span><strong class="metric__value">{{ idea.rivalHook }}</strong></div>
+              <div class="metric"><span class="metric__label">Playstyle</span><strong class="metric__value">{{ idea.buildHint }}</strong></div>
+              <div class="metric"><span class="metric__label">Team role</span><strong class="metric__value">{{ idea.teamHook }}</strong></div>
+              <div class="metric"><span class="metric__label">Best field</span><strong class="metric__value">{{ idea.fieldHook }}</strong></div>
+              <div class="metric"><span class="metric__label">Strong against</span><strong class="metric__value">{{ idea.rivalHook }}</strong></div>
             </div>
             <p class="lead">{{ idea.signatureMoment }}</p>
           </article>
@@ -252,7 +238,7 @@ export class DigiDexPage {
 
         <div class="grid grid--wide">
           <article class="panel">
-            <h3>Battle Stats</h3>
+            <h3>Stats</h3>
             <div class="stat-list">
               @for (entry of statEntries(); track entry.label) {
                 <div class="bar">
@@ -263,19 +249,19 @@ export class DigiDexPage {
             </div>
           </article>
           <article class="panel">
-            <h3>Scouter</h3>
+            <h3>Overview</h3>
             <div class="metric-grid">
               <div class="metric"><span class="metric__label">Power</span><strong class="metric__value">{{ totalPower() }}</strong></div>
               <div class="metric"><span class="metric__label">Rarity</span><strong class="metric__value">{{ rarity() }}</strong></div>
-              <div class="metric"><span class="metric__label">Data</span><strong class="metric__value">{{ completeness() }}%</strong></div>
+              <div class="metric"><span class="metric__label">Data complete</span><strong class="metric__value">{{ completeness() }}%</strong></div>
             </div>
           </article>
           <article class="panel">
-            <h3>Player Note</h3>
+            <h3>Your notes</h3>
             <textarea
               class="note-box"
               maxlength="800"
-              placeholder="Add a build idea, rival read or evolution reminder..."
+              placeholder="Add a build idea, a reminder or anything you like…"
               [value]="note()"
               (input)="note.set($any($event.target).value)"
             ></textarea>
@@ -285,29 +271,32 @@ export class DigiDexPage {
             </div>
           </article>
           <article class="panel">
-            <h3>Derived Skills</h3>
+            <h3>Skills</h3>
             <div class="grid">
               @for (skill of skills(); track skill.id) {
                 <div class="metric">
                   <span class="metric__label">{{ skill.kind }} / {{ skill.accuracy }}%</span>
                   <strong class="metric__value">{{ skill.name }}</strong>
-                  <p class="muted">Power {{ skill.power }} · CD {{ skill.cooldown }}</p>
+                  <p class="muted">Power {{ skill.power }} · Cooldown {{ skill.cooldown }}</p>
                   <div class="chip-row">@for (tag of skill.tags; track tag) { <span class="chip">{{ tag }}</span> }</div>
                 </div>
               }
             </div>
           </article>
           <article class="panel">
-            <h3>Evolution Links</h3>
+            <h3>Evolutions</h3>
             <div class="chip-row">
               @for (evo of d.priorEvolutions; track evo.id) { <a class="chip" [routerLink]="['/dex', evo.id]">← {{ evo.name }}</a> }
               @for (evo of d.nextEvolutions; track evo.id) { <a class="chip chip--hot" [routerLink]="['/dex', evo.id]">{{ evo.name }} →</a> }
+              @if (!d.priorEvolutions.length && !d.nextEvolutions.length) {
+                <span class="muted">No evolutions listed for this Digimon.</span>
+              }
             </div>
           </article>
         </div>
       </section>
     } @else {
-      <div class="empty">Profile not found.</div>
+      <div class="empty">Digimon not found.</div>
     }
   `,
 })
@@ -392,17 +381,17 @@ export class DigimonDetailPage {
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Evolution Lab</p>
-        <h2>Trace DAPI evolution links</h2>
-        <p class="lead">Load a profile, inspect prior and next forms, then jump directly into profiles or compare paths.</p>
+        <p class="eyebrow">Evolutions</p>
+        <h2>See evolution paths</h2>
+        <p class="lead">Enter a Digimon ID to see which forms come before and after it.</p>
       </header>
       <form class="toolbar" (submit)="load($event)">
-        <input class="input" type="number" min="1" placeholder="Digimon ID" [value]="id()" (input)="id.set($any($event.target).value)" />
-        <button class="btn btn--primary" type="submit">Trace</button>
+        <input class="input" type="number" min="1" placeholder="Digimon ID (e.g. 1)" [value]="id()" (input)="id.set($any($event.target).value)" />
+        <button class="btn btn--primary" type="submit">Show</button>
       </form>
       @if (digimon(); as d) {
         <article class="panel">
-          <p class="eyebrow">Current node</p>
+          <p class="eyebrow">Selected Digimon</p>
           <h3>{{ d.name }}</h3>
           <div class="chip-row">
             @for (level of d.levels; track level.id) { <span class="chip">{{ level.name }}</span> }
@@ -411,10 +400,10 @@ export class DigimonDetailPage {
         </article>
         @if (idea(); as idea) {
           <article class="panel idea-card">
-            <p class="eyebrow">Evolution Quest</p>
+            <p class="eyebrow">Tip</p>
             <h3>{{ idea.signatureMoment }}</h3>
             <p class="lead">{{ idea.buildHint }}</p>
-            <div class="chip-row"><span class="chip">{{ idea.role }}</span><span class="chip chip--hot">Idea {{ idea.score }}</span></div>
+            <div class="chip-row"><span class="chip">{{ idea.role }}</span></div>
           </article>
         }
         <div class="grid grid--wide">
@@ -424,7 +413,7 @@ export class DigimonDetailPage {
               @for (evo of d.priorEvolutions; track evo.id) {
                 <a class="chip" [routerLink]="['/dex', evo.id]">{{ evo.name }}</a>
               } @empty {
-                <span class="muted">No prior forms in this DAPI profile.</span>
+                <span class="muted">No earlier forms listed.</span>
               }
             </div>
           </article>
@@ -434,7 +423,7 @@ export class DigimonDetailPage {
               @for (evo of d.nextEvolutions; track evo.id) {
                 <a class="chip chip--hot" [routerLink]="['/dex', evo.id]">{{ evo.name }}</a>
               } @empty {
-                <span class="muted">No next forms in this DAPI profile.</span>
+                <span class="muted">No later forms listed.</span>
               }
             </div>
           </article>
@@ -471,20 +460,20 @@ export class EvolutionLabPage {
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Field Explorer</p>
-        <h2>Biome-aware battle planning</h2>
-        <p class="lead">Fields become arena modifiers, team cohesion hooks and DigiCore cartography progress.</p>
+        <p class="eyebrow">Fields</p>
+        <h2>Battle fields &amp; bonuses</h2>
+        <p class="lead">Each Digimon belongs to a field. On a matching field it gets a small battle bonus.</p>
         <div class="action-row">
-          <a class="btn btn--primary" routerLink="/expeditions">Open Field Ops</a>
+          <a class="btn btn--primary" routerLink="/expeditions">Go to Expeditions</a>
         </div>
       </header>
       <div class="encounter-strip">
         @for (encounter of encounters(); track encounter.id) {
           <article class="encounter-card" [class.encounter-card--volatile]="encounter.risk === 'volatile'">
-            <p class="eyebrow">{{ encounter.trigger }} // {{ encounter.risk }}</p>
+            <p class="eyebrow">{{ encounter.trigger }}</p>
             <h3>{{ encounter.headline }}</h3>
             <p class="muted">{{ encounter.detail }}</p>
-            <button class="btn" type="button" (click)="explore(encounter.headline)">Claim expedition intel</button>
+            <button class="btn" type="button" (click)="explore(encounter.headline)">Explore</button>
           </article>
         }
       </div>
@@ -493,8 +482,8 @@ export class EvolutionLabPage {
           <article class="panel">
             <p class="eyebrow">Field #{{ field.id }}</p>
             <h3>{{ field.name }}</h3>
-            <p class="muted">Matching members receive +10% field pressure inside compatible Arena modes.</p>
-            <button class="btn" type="button" (click)="explore(field.name)">Explore Field</button>
+            <p class="muted">Digimon that belong to this field get a small bonus in matching battles.</p>
+            <button class="btn" type="button" (click)="explore(field.name)">Mark explored</button>
           </article>
         }
       </div>
@@ -523,27 +512,19 @@ export class FieldExplorerPage {
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Skill Library</p>
-        <h2>Skill metadata becomes combat language</h2>
-        <p class="lead">Search DAPI skills and train the DigiCore skill track for better battle insight.</p>
+        <p class="eyebrow">Skills</p>
+        <h2>Browse all skills</h2>
+        <p class="lead">Search the full list of skills. Want to try skill combos? Open Skill Training.</p>
       </header>
       <div class="toolbar">
-        <input class="input" type="search" placeholder="Filter skills" [value]="query()" (input)="query.set($any($event.target).value)" />
-        <button class="btn btn--primary" type="button" (click)="train()">Analyze visible skills</button>
-        <a class="btn btn--accent" routerLink="/skill-forge">Open Skill Forge</a>
-        <a class="btn" routerLink="/minigames">Open Skill Match</a>
+        <input class="input" type="search" placeholder="Search skills" [value]="query()" (input)="query.set($any($event.target).value)" />
+        <a class="btn btn--primary" routerLink="/skill-forge">Open Skill Training</a>
       </div>
-      <article class="panel idea-card">
-        <p class="eyebrow">Skill Forge</p>
-        <h3>Read tags, then forge a real combo chain.</h3>
-        <p class="lead">Skill Forge trains role fit, tag match, accuracy and power before Arena, Rival Signal or Tournament pressure.</p>
-      </article>
       <div class="grid">
         @for (skill of filtered(); track skill.id) {
           <article class="panel">
             <p class="eyebrow">Skill #{{ skill.id }}</p>
             <h3>{{ skill.name }}</h3>
-            <div class="chip-row"><span class="chip">Power heuristic</span><span class="chip chip--hot">Taggable</span></div>
           </article>
         }
       </div>
@@ -552,7 +533,6 @@ export class FieldExplorerPage {
 })
 export class SkillLibraryPage {
   private readonly repo = inject(DigimonRepository);
-  private readonly progress = inject(GameProgressRepository);
   protected readonly query = signal('');
   protected readonly skills = signal<MetaEntry[]>([]);
   protected readonly filtered = computed(() => {
@@ -565,141 +545,6 @@ export class SkillLibraryPage {
   constructor() {
     void this.repo.getMeta('skill').then((skills) => this.skills.set(skills));
   }
-
-  protected train(): void {
-    void this.progress.applyMastery({ track: 'skill', amount: 8, reason: 'Skill library analysis' });
-  }
-}
-
-@Component({
-  selector: 'app-team-builder',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
-  template: `
-    <section class="page">
-      <header class="page-head">
-        <p class="eyebrow">// Team Builder</p>
-        <h2>Build a scored Arena team</h2>
-        <p class="lead">Teams are saved locally, scored immediately and reused by Arena, Random Battle and Tournaments.</p>
-      </header>
-      <div class="toolbar">
-        <button class="btn btn--primary" type="button" (click)="addRandom()">Add random Digimon</button>
-        <button class="btn" type="button" (click)="autoBalance()">Balance team</button>
-        <button class="btn btn--accent" type="button" [disabled]="members().length === 0" (click)="save()">Save team</button>
-        <a class="btn" routerLink="/arena">Open Arena</a>
-        <a class="btn" routerLink="/nexus">Open Nexus Lab</a>
-      </div>
-      <div class="split">
-        <div class="grid">
-          @for (member of members(); track member.id) {
-            <article class="monster-card">
-              <div class="monster-card__image"><img [src]="member.image || fallbackImage" [alt]="member.name" (error)="onImageError($event)" /></div>
-              <h3 class="monster-card__title">{{ member.name }}</h3>
-              <div class="chip-row">@for (attribute of member.attributes; track attribute.id) { <span class="chip">{{ attribute.name }}</span> }</div>
-              <button class="btn" type="button" (click)="remove(member.id)">Remove</button>
-            </article>
-          } @empty {
-            <div class="empty">Add Digimon to start a team.</div>
-          }
-        </div>
-        <aside class="panel">
-          <h3>Team Score</h3>
-          <div class="metric-grid">
-            <div class="metric"><span class="metric__label">Total</span><strong class="metric__value">{{ score().total }}</strong></div>
-            <div class="metric"><span class="metric__label">Power</span><strong class="metric__value">{{ score().power }}</strong></div>
-            <div class="metric"><span class="metric__label">Synergy</span><strong class="metric__value">{{ score().synergy }}</strong></div>
-          </div>
-          <div class="stat-list">
-            <div class="bar"><div class="bar__head"><span>Coverage</span><strong>{{ score().coverage }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="score().coverage"></div></div></div>
-            <div class="bar"><div class="bar__head"><span>Field cohesion</span><strong>{{ score().fieldCohesion }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="score().fieldCohesion"></div></div></div>
-            <div class="bar"><div class="bar__head"><span>Skill diversity</span><strong>{{ score().skillDiversity }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="score().skillDiversity"></div></div></div>
-          </div>
-          @for (note of score().notes; track note) { <p class="muted">{{ note }}</p> }
-          <div class="idea-stack">
-            <p class="eyebrow">Squad Ideas</p>
-            @for (idea of ideas().slice(0, 3); track idea.digimonId) {
-              <div class="idea-mini">
-                <strong>{{ idea.name }} // {{ idea.role }}</strong>
-                <span>{{ idea.teamHook }}</span>
-              </div>
-            }
-          </div>
-          <div class="nexus-board">
-            <p class="eyebrow">DigiLink Nexus</p>
-            <h3>{{ nexus().protocol }} · Grade {{ nexus().grade }}</h3>
-            <div class="metric-grid">
-              <div class="metric"><span class="metric__label">Nexus</span><strong class="metric__value">{{ nexus().score }}</strong></div>
-              <div class="metric"><span class="metric__label">Focus</span><strong class="metric__value">+{{ nexus().perks.focusStart }}</strong></div>
-              <div class="metric"><span class="metric__label">Reward</span><strong class="metric__value">x{{ nexus().perks.rewardMultiplier }}</strong></div>
-            </div>
-            <div class="stat-list">
-              @for (aspect of nexus().aspects; track aspect.id) {
-                <div class="bar"><div class="bar__head"><span>{{ aspect.label }}</span><strong>{{ aspect.score }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="aspect.score"></div></div></div>
-              }
-            </div>
-            @for (contract of contracts(); track contract.id) {
-              <div class="contract-mini">
-                <strong>{{ contract.title }}</strong>
-                <span>{{ contract.risk }} · {{ contract.track }}</span>
-              </div>
-            }
-          </div>
-        </aside>
-      </div>
-    </section>
-  `,
-})
-export class TeamBuilderPage {
-  private readonly repo = inject(DigimonRepository);
-  private readonly progress = inject(GameProgressRepository);
-  protected readonly fallbackImage = FALLBACK_IMAGE;
-  protected readonly members = signal<Digimon[]>([]);
-  protected readonly score = computed(() => scoreTeam(this.members()));
-  protected readonly nexus = computed<DigiLinkProfile>(() => analyzeDigiLink(this.members()));
-  protected readonly contracts = computed<NexusContract[]>(() => generateNexusContracts(this.nexus()));
-  protected readonly ideas = computed<DigimonIdea[]>(() => ideasForTeam(this.members()));
-
-  constructor() {
-    void this.loadDefaults();
-  }
-
-  protected onImageError(event: Event): void {
-    imageError(event);
-  }
-
-  protected remove(id: number): void {
-    this.members.update((members) => members.filter((member) => member.id !== id));
-  }
-
-  protected async addRandom(): Promise<void> {
-    const total = await this.repo.getDigimonCount();
-    const page = await this.repo.getDigimonList({ page: Math.floor(Math.random() * total), pageSize: 1 });
-    const pick = page.items[0];
-    if (!pick || this.members().some((member) => member.id === pick.id)) return;
-    const detail = await this.repo.getDigimon(pick.id);
-    this.members.update((members) => [...members, detail].slice(0, 6));
-  }
-
-  protected async autoBalance(): Promise<void> {
-    const ids = [1, 2, 3, 11, 21, 243];
-    this.members.set((await loadMany(this.repo, ids)).slice(0, 3));
-    await this.progress.applyMastery({ track: 'tactics', amount: 8, reason: 'Auto-balanced team' });
-  }
-
-  protected async save(): Promise<void> {
-    const ids = this.members().map((member) => member.id);
-    await this.progress.saveTeam({
-      id: `team-${ids.join('-')}`,
-      name: `Team ${this.members()[0]?.name ?? 'DigiVerse'}`,
-      memberIds: ids,
-      score: this.score().total,
-    });
-    await this.progress.applyMastery({ track: 'tactics', amount: 10, reason: 'Team saved' });
-  }
-
-  private async loadDefaults(): Promise<void> {
-    this.members.set(await loadMany(this.repo, DEFAULT_TEAM));
-  }
 }
 
 @Component({
@@ -709,21 +554,20 @@ export class TeamBuilderPage {
   template: `
     <section class="page">
       <header class="page-head tournament-hero">
-        <p class="eyebrow">// DigiLink Nexus</p>
-        <h2>Protocol lab for team chemistry</h2>
-        <p class="lead">Attributes, Fields, Skills and stat curves converge into protocols, contracts and combat pressure.</p>
+        <p class="eyebrow">Synergy</p>
+        <h2>How well your team works together</h2>
+        <p class="lead">See your team's synergy grade and take on optional challenges to make it stronger.</p>
         <div class="action-row">
-          <button class="btn btn--primary" type="button" (click)="loadPreset('balanced')">Balanced Pulse</button>
-          <button class="btn" type="button" (click)="loadPreset('field')">Field Core</button>
-          <button class="btn" type="button" (click)="loadPreset('elite')">Elite Circuit</button>
+          <button class="btn btn--primary" type="button" (click)="loadPreset('balanced')">Balanced</button>
+          <button class="btn" type="button" (click)="loadPreset('field')">Field</button>
+          <button class="btn" type="button" (click)="loadPreset('elite')">Elite</button>
           <a class="btn" routerLink="/arena">Test in Arena</a>
-          <a class="btn" routerLink="/minigames">Train contract reflex</a>
         </div>
       </header>
 
       <div class="split">
         <article class="panel nexus-intel">
-          <p class="eyebrow">Active Protocol</p>
+          <p class="eyebrow">Team synergy</p>
           <h3>{{ profile().protocol }} · Grade {{ profile().grade }}</h3>
           <p class="lead">Nexus score {{ profile().score }} creates +{{ profile().perks.focusStart }} opening focus, {{ percent(profile().perks.critBonus) }} crit pressure and x{{ profile().perks.rewardMultiplier }} reward forecast.</p>
           <div class="metric-grid">
@@ -743,7 +587,7 @@ export class TeamBuilderPage {
         </article>
 
         <aside class="panel">
-          <h3>Nexus Contracts</h3>
+          <h3>Challenges</h3>
           <div class="story-feed">
             @for (contract of contracts(); track contract.id) {
               <div class="story-beat contract-card">
@@ -758,7 +602,7 @@ export class TeamBuilderPage {
             }
           </div>
           @if (message()) {
-            <div class="metric"><span class="metric__label">Nexus Log</span><strong class="metric__value">{{ message() }}</strong></div>
+            <div class="metric"><span class="metric__label">Latest</span><strong class="metric__value">{{ message() }}</strong></div>
           }
         </aside>
       </div>
@@ -822,9 +666,9 @@ export class NexusLabPage {
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Arena</p>
-        <h2>Local-first PvE command battles</h2>
-        <p class="lead">Choose a mode, load real DAPI combatants and resolve a deterministic command battle with a readable event log.</p>
+        <p class="eyebrow">Arena</p>
+        <h2>Battle against the computer</h2>
+        <p class="lead">Pick a mode below and your saved team fights automatically. Watch the result play out.</p>
       </header>
       <div class="quest-strip">
         @for (quest of quests().slice(0, 3); track quest.id) {
@@ -839,7 +683,7 @@ export class NexusLabPage {
       <div class="grid">
         @for (mode of modes; track mode.id) {
           <article class="panel arena-card">
-            <p class="eyebrow">{{ mode.tier }} // {{ mode.cadence }}</p>
+            <p class="eyebrow">{{ mode.tier }}</p>
             <h3>{{ mode.name }}</h3>
             <p class="muted">{{ mode.description }}</p>
             <p class="muted">{{ mode.hazard }}</p>
@@ -857,13 +701,13 @@ export class NexusLabPage {
         @if (intel(); as scan) {
           <article class="panel nexus-intel">
             <div>
-              <p class="eyebrow">Nexus Intel // {{ scan.threat }}</p>
+              <p class="eyebrow">Battle preview</p>
               <h3>{{ scan.recommendedProtocol }}</h3>
               <p class="lead">Edge {{ scan.playerEdge }} · Reward forecast {{ scan.rewardForecast }} bits</p>
             </div>
             <div class="grid">
               @for (note of scan.notes; track note) {
-                <div class="metric"><span class="metric__label">Intel</span><strong class="metric__value">{{ note }}</strong></div>
+                <div class="metric"><span class="metric__label">Tip</span><strong class="metric__value">{{ note }}</strong></div>
               }
             </div>
           </article>
@@ -968,14 +812,14 @@ export class ArenaPage {
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Random Battle</p>
-        <h2>Generated matchups with stable simulation</h2>
-        <p class="lead">Every roll pulls real DAPI entries, derives stats and writes battle history.</p>
+        <p class="eyebrow">Quick Battle</p>
+        <h2>Instant random battles</h2>
+        <p class="lead">Roll a random matchup and watch it play out. Great for a fast fight.</p>
       </header>
       <div class="toolbar">
-        <button class="btn btn--primary" type="button" (click)="roll(1, '1v1 Random')">1v1 Random</button>
-        <button class="btn" type="button" (click)="roll(3, '3v3 Chaos')">3v3 Chaos</button>
-        <button class="btn" type="button" (click)="roll(2, 'Underdog Trial')">Underdog Trial</button>
+        <button class="btn btn--primary" type="button" (click)="roll(1, '1v1 Random')">1v1</button>
+        <button class="btn" type="button" (click)="roll(3, '3v3 Chaos')">3v3</button>
+        <button class="btn" type="button" (click)="roll(2, 'Underdog Trial')">Underdog</button>
       </div>
       @if (battle(); as result) {
         <article class="panel">
@@ -984,7 +828,7 @@ export class ArenaPage {
           <div class="log">@for (event of result.events.slice(-14); track $index) { <div class="log__line">{{ formatEvent(event) }}</div> }</div>
         </article>
       }
-      <a class="btn" routerLink="/arena">Open Arena Hub</a>
+      <a class="btn" routerLink="/arena">Go to Arena</a>
     </section>
   `,
 })
@@ -1026,357 +870,25 @@ export class RandomBattlePage {
 }
 
 @Component({
-  selector: 'app-tournaments',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="page">
-      <header class="page-head tournament-hero">
-        <p class="eyebrow">// Tournaments</p>
-        <h2>Grand Circuit Tournament Mode</h2>
-        <p class="lead">Pick a themed event, scout the modifiers, launch the bracket and watch the DigiCore turn every upset, final and reward into a real tournament story.</p>
-        <div class="metric-grid">
-          <div class="metric"><span class="metric__label">Events</span><strong class="metric__value">{{ tournaments.length }}</strong></div>
-          <div class="metric"><span class="metric__label">Formats</span><strong class="metric__value">4</strong></div>
-          <div class="metric"><span class="metric__label">Max Seeds</span><strong class="metric__value">16</strong></div>
-        </div>
-      </header>
-
-      <div class="grid grid--wide">
-        @for (tournament of tournaments; track tournament.id) {
-          <article class="bracket-card tournament-card">
-            <p class="eyebrow">{{ tournament.sponsor }} // {{ tournament.format }}</p>
-            <h3>{{ tournament.name }}</h3>
-            <p class="lead">{{ tournament.tagline }}</p>
-            <p class="muted">{{ tournament.description }}</p>
-            <div class="difficulty" [attr.aria-label]="'Difficulty ' + tournament.difficulty + ' of 5'">
-              @for (pip of difficultyPips(tournament); track $index) {
-                <span class="difficulty__pip" [class.difficulty__pip--on]="pip"></span>
-              }
-            </div>
-            <div class="chip-row">
-              <span class="chip">{{ tournament.size }} seeds</span>
-              <span class="chip">{{ tournament.teamSize }} per team</span>
-              <span class="chip">{{ tournament.field || 'Neutral Field' }}</span>
-              <span class="chip chip--hot">{{ tournament.reward }}</span>
-            </div>
-            <div class="chip-row">
-              @for (modifier of tournament.modifiers; track modifier) {
-                <span class="chip">{{ modifier }}</span>
-              }
-            </div>
-            <p class="muted">{{ tournament.rule }}</p>
-            <button class="btn btn--primary" type="button" [disabled]="running()" (click)="run(tournament)">Run bracket</button>
-          </article>
-        }
-      </div>
-
-      @if (running()) {
-        <div class="empty">Charging tournament gates...</div>
-      }
-
-      @if (current(); as run) {
-        <article id="tournament-results" class="panel tournament-showcase" tabindex="-1">
-          <div>
-            <p class="eyebrow">Champion: {{ run.championName }}</p>
-            <h3>{{ run.definition.name }}</h3>
-            <p class="lead">{{ summary(run) }}</p>
-          </div>
-          <div class="metric-grid">
-            <div class="metric"><span class="metric__label">Hype</span><strong class="metric__value">{{ run.hypeScore }}</strong></div>
-            <div class="metric"><span class="metric__label">Upsets</span><strong class="metric__value">{{ run.upsetCount }}</strong></div>
-            <div class="metric"><span class="metric__label">Your Run</span><strong class="metric__value">{{ run.playerPlacement }}</strong></div>
-            <div class="metric"><span class="metric__label">Reward</span><strong class="metric__value">{{ run.rewardSummary }}</strong></div>
-          </div>
-        </article>
-
-        <div class="split">
-          <article class="panel">
-            <h3>Story Feed</h3>
-            <div class="story-feed">
-              @for (beat of run.storyBeats; track beat.title) {
-                <div class="story-beat">
-                  <span class="story-beat__round">R{{ beat.round }}</span>
-                  <div>
-                    <strong>{{ beat.title }}</strong>
-                    <p class="muted">{{ beat.detail }}</p>
-                    <div class="bar"><div class="bar__head"><span>Intensity</span><strong>{{ beat.intensity }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="beat.intensity"></div></div></div>
-                  </div>
-                </div>
-              }
-            </div>
-          </article>
-
-          <article class="panel final-theater">
-            <p class="eyebrow">Final Theater</p>
-            <h3>Final Theater</h3>
-            @if (finalMatch(run); as final) {
-              <p class="lead">{{ final.headline }}</p>
-              <div class="match-card__teams">
-                <span>{{ final.playerName }}</span>
-                <strong>vs</strong>
-                <span>{{ final.enemyName }}</span>
-              </div>
-              <div class="metric-grid">
-                <div class="metric"><span class="metric__label">Winner</span><strong class="metric__value">{{ final.winnerName }}</strong></div>
-                <div class="metric"><span class="metric__label">Hype</span><strong class="metric__value">{{ final.hype }}</strong></div>
-                <div class="metric"><span class="metric__label">Reward Bits</span><strong class="metric__value">{{ final.rewardBits }}</strong></div>
-              </div>
-            }
-          </article>
-        </div>
-
-        <article class="panel">
-          <h3>Bracket Board</h3>
-          @for (round of roundNumbers(run); track round) {
-            <p class="eyebrow">Round {{ round }}</p>
-            <div class="grid">
-              @for (match of roundMatches(run, round); track match.id) {
-                <div class="match-card" [class.match-card--upset]="match.upset">
-                  <div class="match-card__top">
-                    <span class="chip">Hype {{ match.hype }}</span>
-                    @if (match.upset) { <span class="chip chip--hot">Upset</span> }
-                    <span class="chip">{{ match.rewardBits }} bits</span>
-                  </div>
-                  <strong>{{ match.headline }}</strong>
-                  <div class="match-card__teams">
-                    <span>{{ match.playerName }}</span>
-                    <strong>vs</strong>
-                    <span>{{ match.enemyName }}</span>
-                  </div>
-                  <div class="power-line">
-                    <span>{{ match.leftPower }}</span>
-                    <div class="bar__track"><div class="bar__fill" [style.width.%]="powerSplit(match)"></div></div>
-                    <span>{{ match.rightPower }}</span>
-                  </div>
-                  <p class="muted">Winner: {{ match.winnerName }} · Margin {{ match.margin }}</p>
-                </div>
-              }
-            </div>
-          }
-        </article>
-      }
-    </section>
-  `,
-})
-export class TournamentsPage {
-  private readonly repo = inject(DigimonRepository);
-  private readonly progress = inject(GameProgressRepository);
-  protected readonly tournaments = TOURNAMENTS;
-  protected readonly current = signal<TournamentRun | null>(null);
-  protected readonly running = signal(false);
-
-  protected summary(run: TournamentRun): string {
-    return tournamentSummary(run);
-  }
-
-  protected difficultyPips(tournament: TournamentDefinition): boolean[] {
-    return Array.from({ length: 5 }, (_, index) => index < tournament.difficulty);
-  }
-
-  protected finalMatch(run: TournamentRun): TournamentMatch | null {
-    return run.matches[run.matches.length - 1] ?? null;
-  }
-
-  protected roundNumbers(run: TournamentRun): number[] {
-    return [...new Set(run.matches.map((match) => match.round))];
-  }
-
-  protected roundMatches(run: TournamentRun, round: number): TournamentMatch[] {
-    return run.matches.filter((match) => match.round === round);
-  }
-
-  protected powerSplit(match: TournamentMatch): number {
-    const total = Math.max(1, match.leftPower + match.rightPower);
-    return Math.round((match.leftPower / total) * 100);
-  }
-
-  protected async run(tournament: TournamentDefinition): Promise<void> {
-    this.running.set(true);
-    try {
-      const [player, opponents] = await Promise.all([
-        loadMany(this.repo, DEFAULT_TEAM.slice(0, tournament.teamSize)),
-        loadMany(this.repo, tournament.seedIds),
-      ]);
-      const run = runTournament(tournament, player, opponents);
-      this.current.set(run);
-      setTimeout(() => {
-        const reduceMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-        globalThis.document?.getElementById('tournament-results')?.scrollIntoView({
-          behavior: reduceMotion ? 'auto' : 'smooth',
-          block: 'start',
-        });
-      });
-      await this.progress.saveTournament({
-        tournamentId: tournament.id,
-        name: tournament.name,
-        status: run.status,
-        championName: run.championName,
-        run,
-      });
-    } finally {
-      this.running.set(false);
-    }
-  }
-}
-
-@Component({
-  selector: 'app-compare',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
-  template: `
-    <section class="page">
-      <header class="page-head">
-        <p class="eyebrow">// Compare</p>
-        <h2>Scouter comparison</h2>
-        <p class="lead">Compare artwork, metadata, battle stats, rarity and data completeness.</p>
-      </header>
-      @if (leader(); as lead) {
-        <article class="panel prediction-slip">
-          <div>
-            <p class="eyebrow">Scouter Duel</p>
-            <h3>{{ lead.name }} has the cleanest opening line.</h3>
-          </div>
-          <p class="lead">{{ idea(lead).teamHook }}</p>
-          <a class="btn btn--primary" [routerLink]="['/dex', lead.id]">Open winner profile</a>
-        </article>
-      }
-      <div class="grid grid--wide">
-        @for (digimon of digimon(); track digimon.id) {
-          <article class="monster-card">
-            <div class="monster-card__image"><img [src]="digimon.image || fallbackImage" [alt]="digimon.name" (error)="onImageError($event)" /></div>
-            <h3 class="monster-card__title">{{ digimon.name }}</h3>
-            <div class="metric-grid">
-              <div class="metric"><span class="metric__label">Power</span><strong class="metric__value">{{ power(digimon) }}</strong></div>
-              <div class="metric"><span class="metric__label">Rarity</span><strong class="metric__value">{{ rarity(digimon) }}</strong></div>
-              <div class="metric"><span class="metric__label">Data</span><strong class="metric__value">{{ completeness(digimon) }}%</strong></div>
-            </div>
-            <a class="btn" [routerLink]="['/dex', digimon.id]">Open</a>
-          </article>
-        }
-      </div>
-    </section>
-  `,
-})
-export class ComparePage {
-  private readonly repo = inject(DigimonRepository);
-  private readonly route = inject(ActivatedRoute);
-  protected readonly fallbackImage = FALLBACK_IMAGE;
-  protected readonly digimon = signal<Digimon[]>([]);
-  protected readonly leader = computed(() =>
-    this.digimon().reduce<Digimon | null>(
-      (best, digimon) => (!best || this.power(digimon) + this.rarity(digimon) > this.power(best) + this.rarity(best) ? digimon : best),
-      null,
-    ),
-  );
-
-  constructor() {
-    const ids =
-      this.route.snapshot.queryParamMap
-        .get('ids')
-        ?.split(',')
-        .map((id) => Number(id.trim()))
-        .filter(Boolean) ?? [1, 2, 3];
-    void loadMany(this.repo, ids.slice(0, 4)).then((digimon) => this.digimon.set(digimon));
-  }
-
-  protected onImageError(event: Event): void {
-    imageError(event);
-  }
-
-  protected power(digimon: Digimon): number {
-    return statTotal(deriveStats(digimon));
-  }
-
-  protected rarity(digimon: Digimon): number {
-    return rarityScore(digimon);
-  }
-
-  protected completeness(digimon: Digimon): number {
-    return dataCompleteness(digimon);
-  }
-
-  protected idea(digimon: Digimon): DigimonIdea {
-    return ideaForDigimon(digimon);
-  }
-}
-
-@Component({
-  selector: 'app-collection',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="page">
-      <header class="page-head">
-        <p class="eyebrow">// Collection</p>
-        <h2>Local command archive</h2>
-        <p class="lead">Saved teams, battle history, tournament history and DigiCore Mastery stay on this device.</p>
-      </header>
-      <div class="metric-grid">
-        @for (entry of masteryEntries(); track entry.label) {
-          <div class="metric"><span class="metric__label">{{ entry.label }}</span><strong class="metric__value">{{ entry.value }}</strong></div>
-        }
-      </div>
-      <div class="grid grid--wide">
-        <article class="panel">
-          <h3>Teams</h3>
-          @for (team of teams(); track team.id) { <p class="muted">{{ team.name }} · {{ team.memberIds.join(', ') }} · score {{ team.score }}</p> } @empty { <p class="muted">No saved teams yet.</p> }
-        </article>
-        <article class="panel">
-          <h3>Battles</h3>
-          @for (battle of battles(); track battle.id) { <p class="muted">{{ battle.mode }} · {{ battle.winner }} · {{ battle.summary }}</p> } @empty { <p class="muted">No battles yet.</p> }
-        </article>
-        <article class="panel">
-          <h3>Tournaments</h3>
-          @for (run of tournaments(); track run.id) { <p class="muted">{{ run.name }} · champion {{ run.championName || 'pending' }}</p> } @empty { <p class="muted">No tournaments yet.</p> }
-        </article>
-      </div>
-    </section>
-  `,
-})
-export class CollectionPage {
-  private readonly progress = inject(GameProgressRepository);
-  protected readonly teams = signal<Awaited<ReturnType<GameProgressRepository['listTeams']>>>([]);
-  protected readonly battles = signal<Awaited<ReturnType<GameProgressRepository['listBattles']>>>([]);
-  protected readonly tournaments = signal<Awaited<ReturnType<GameProgressRepository['listTournaments']>>>([]);
-  protected readonly masteryEntries = signal<{ label: string; value: number }[]>([]);
-
-  constructor() {
-    void this.load();
-  }
-
-  private async load(): Promise<void> {
-    const [teams, battles, tournaments, mastery] = await Promise.all([
-      this.progress.listTeams(),
-      this.progress.listBattles(),
-      this.progress.listTournaments(),
-      this.progress.mastery(),
-    ]);
-    this.teams.set(teams);
-    this.battles.set(battles);
-    this.tournaments.set(tournaments);
-    this.masteryEntries.set(Object.entries(mastery.tracks).map(([label, value]) => ({ label, value })));
-  }
-}
-
-@Component({
   selector: 'app-settings',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
       <header class="page-head">
-        <p class="eyebrow">// Settings</p>
-        <h2>Data, cache and performance controls</h2>
-        <p class="lead">Reset local state without touching the source project or DAPI itself.</p>
+        <p class="eyebrow">Settings</p>
+        <h2>Manage your data</h2>
+        <p class="lead">Everything is stored on your device. You can clear it here at any time.</p>
       </header>
       <div class="grid">
         <article class="panel">
-          <h3>API Cache</h3>
-          <p class="muted">Clears cached Digimon details and metadata. The next screen will fetch fresh DAPI data.</p>
-          <button class="btn" type="button" (click)="clearCache()">Clear API cache</button>
+          <h3>Cached Digimon data</h3>
+          <p class="muted">Removes downloaded Digimon info. The app will fetch it again next time you need it.</p>
+          <button class="btn" type="button" (click)="clearCache()">Clear cache</button>
         </article>
         <article class="panel">
-          <h3>User Data</h3>
-          <p class="muted">Clears favorites, notes, teams, Squad Lab drills, Scouter Duels, battles, tournaments, field expeditions, skill forge runs, rival bounties, mini-games, settings and DigiCore mastery.</p>
-          <button class="btn btn--accent" type="button" (click)="clearUserData()">Clear local game data</button>
+          <h3>Your progress</h3>
+          <p class="muted">Removes your favorites, notes, teams, battle history and all other saved progress. This can't be undone.</p>
+          <button class="btn btn--accent" type="button" (click)="clearUserData()">Reset all progress</button>
         </article>
       </div>
       @if (message()) { <div class="panel">{{ message() }}</div> }

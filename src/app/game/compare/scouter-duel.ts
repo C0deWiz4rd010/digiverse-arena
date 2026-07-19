@@ -351,7 +351,7 @@ function recapFor(
 
 function nextHookFor(outcome: ScouterOutcome, scenario: ScouterScenario, winner?: ScouterCandidate): string {
   if (outcome === 'perfect-read') return `Take ${winner?.name ?? 'the winner'} into Arena while the read is hot.`;
-  if (outcome === 'hit') return `Save the lesson, then test ${scenario.title} logic in Squad Lab.`;
+  if (outcome === 'hit') return `Save the lesson, then test ${scenario.title} logic in your Team.`;
   return `Recheck ${winner?.role ?? 'the winning role'} signals before the next call.`;
 }
 

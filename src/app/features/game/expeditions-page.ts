@@ -28,21 +28,21 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
   template: `
     <section class="page expedition-page">
       <header class="page-head tournament-hero expedition-hero">
-        <p class="eyebrow">// Field Ops</p>
-        <h2>Field Expedition Routes</h2>
-        <p class="lead">Turn live DAPI Field metadata into route missions, team-fit reads, discoveries and local archive progress.</p>
+        <p class="eyebrow">Expeditions</p>
+        <h2>Send your team on expeditions</h2>
+        <p class="lead">Pick a route, check how well your team fits it, then send them out to earn rewards.</p>
         <div class="metric-grid">
           <div class="metric"><span class="metric__label">Routes</span><strong class="metric__value">{{ expeditions().length }}</strong></div>
-          <div class="metric"><span class="metric__label">Team Fit</span><strong class="metric__value">{{ fit().total }}%</strong></div>
-          <div class="metric"><span class="metric__label">Winrate</span><strong class="metric__value">{{ winRate() }}%</strong></div>
-          <div class="metric"><span class="metric__label">History</span><strong class="metric__value">{{ history().length }}</strong></div>
+          <div class="metric"><span class="metric__label">Team fit</span><strong class="metric__value">{{ fit().total }}%</strong></div>
+          <div class="metric"><span class="metric__label">Win rate</span><strong class="metric__value">{{ winRate() }}%</strong></div>
+          <div class="metric"><span class="metric__label">Runs</span><strong class="metric__value">{{ history().length }}</strong></div>
         </div>
       </header>
 
       @if (loading()) {
-        <div class="empty">Scanning Field routes...</div>
+        <div class="empty">Loading routes…</div>
       } @else if (error()) {
-        <div class="empty">Field metadata could not be loaded. Retry the route scan.</div>
+        <div class="empty">Could not load routes. Please try again.</div>
       } @else if (selected(); as mission) {
         <div class="expedition-grid">
           @for (expedition of expeditions(); track expedition.id) {
@@ -53,7 +53,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
               [class.expedition-card--volatile]="expedition.risk === 'volatile'"
               (click)="select(expedition)"
             >
-              <span class="eyebrow">{{ expedition.risk }} // {{ expedition.recommendedAttribute }}</span>
+              <span class="eyebrow">{{ expedition.risk }} · {{ expedition.recommendedAttribute }}</span>
               <strong>{{ expedition.title }}</strong>
               <span>{{ expedition.objective }}</span>
               <span class="chip chip--hot">{{ expedition.rewardBits }} bits</span>
@@ -67,7 +67,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             <div class="expedition-map__rings" aria-hidden="true"></div>
           </div>
           <div class="expedition-theater__body">
-            <p class="eyebrow">{{ mission.risk }} // threat {{ mission.threat }}</p>
+            <p class="eyebrow">{{ mission.risk }} · threat {{ mission.threat }}</p>
             <h3>{{ mission.title }}</h3>
             <p class="lead">{{ mission.hazard }}</p>
             <p class="muted">{{ mission.objective }}</p>
@@ -78,15 +78,15 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
             </div>
             <div class="action-row">
               <button class="btn btn--primary" type="button" [disabled]="running()" (click)="run()">Run expedition</button>
-              <button class="btn" type="button" [disabled]="running()" (click)="reroute()">Reroute daily map</button>
-              <a class="btn" routerLink="/team-builder">Tune team</a>
+              <button class="btn" type="button" [disabled]="running()" (click)="reroute()">New route</button>
+              <a class="btn" routerLink="/team-builder">Open Team</a>
             </div>
           </div>
         </article>
 
         <div class="split">
           <article class="panel">
-            <p class="eyebrow">Team Fit</p>
+            <p class="eyebrow">Team fit</p>
             <h3>{{ fit().total }}% route confidence</h3>
             <div class="stat-list">
               <div class="bar"><div class="bar__head"><span>Field Match</span><strong>{{ fit().fieldMatch }}</strong></div><div class="bar__track"><div class="bar__fill" [style.width.%]="fit().fieldMatch"></div></div></div>
@@ -100,7 +100,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
           </article>
 
           <article class="panel">
-            <h3>Assigned Team</h3>
+            <h3>Your team</h3>
             <div class="expedition-roster">
               @for (member of team(); track member.id) {
                 <a class="favorite-token" [routerLink]="['/dex', member.id]">
@@ -115,7 +115,7 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
         @if (result(); as run) {
           <article class="expedition-result" [class.expedition-result--complete]="run.outcome === 'complete'">
             <div>
-              <p class="eyebrow">Outcome // {{ run.outcome }}</p>
+              <p class="eyebrow">Outcome · {{ run.outcome }}</p>
               <h3>{{ run.recap }}</h3>
               <p class="lead">{{ run.nextHook }}</p>
               <div class="chip-row">
