@@ -10,6 +10,10 @@ export const routes: Routes = [
     path: 'welcome',
     loadComponent: () => import('./features/onboarding/onboarding').then((m) => m.OnboardingPage),
   },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile').then((m) => m.ProfilePage),
+  },
   { path: 'dex', loadComponent: () => import('./features/game/game-pages').then((m) => m.DigiDexPage) },
   {
     path: 'dex/:id',

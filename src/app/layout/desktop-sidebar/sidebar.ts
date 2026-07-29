@@ -42,6 +42,10 @@ interface NavGroup {
       }
 
       <div class="sidebar__group">
+        <a class="sidebar__item" routerLink="/profile" routerLinkActive="sidebar__item--active">
+          <span class="sidebar__icon" aria-hidden="true">🧬</span>
+          <span class="sidebar__label">Profile</span>
+        </a>
         <a class="sidebar__item" routerLink="/settings" routerLinkActive="sidebar__item--active">
           <span class="sidebar__icon" aria-hidden="true">⚙️</span>
           <span class="sidebar__label">Settings</span>
