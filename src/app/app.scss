@@ -13,7 +13,8 @@
     align-items: center;
     gap: var(--space-3);
     height: calc(var(--topbar-height) + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) var(--space-4) 0;
+    padding: env(safe-area-inset-top) max(var(--space-4), env(safe-area-inset-right)) 0
+      max(var(--space-4), env(safe-area-inset-left));
     @include glass;
   }
 
@@ -102,7 +103,8 @@
 
   &__content {
     width: 100%;
-    padding: var(--space-6) var(--space-4) var(--space-10);
+    padding: var(--space-6) max(var(--space-4), env(safe-area-inset-right)) var(--space-10)
+      max(var(--space-4), env(safe-area-inset-left));
   }
 
   &__footer {

@@ -1,0 +1,20 @@
+{
+  "name": "DigiVerse Arena",
+  "short_name": "DigiVerse",
+  "description": "A mobile-first Digimon DigiDex, arena browser-game and data hub.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#05070d",
+  "theme_color": "#05070d",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
