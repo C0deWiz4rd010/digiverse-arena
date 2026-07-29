@@ -144,6 +144,7 @@ export class Sidebar {
       items: [
         { path: '/minigames', label: 'Mini-Games', icon: '🕹️' },
         { path: '/achievements', label: 'Achievements', icon: '🏅' },
+        { path: '/shop', label: 'Shop', icon: '🛒' },
       ],
     },
   ];
