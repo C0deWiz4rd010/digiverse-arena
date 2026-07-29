@@ -9,6 +9,10 @@ test.describe('DigiVerse Arena smoke', () => {
       if (message.type() === 'error') consoleErrors.push(message.text());
     });
 
+    // New tamers are routed to onboarding first; skip it to reach the app shell.
+    await page.goto('/welcome');
+    await page.getByRole('button', { name: 'Skip setup' }).click();
+
     await page.goto('/');
     await expect(
       page.getByRole('heading', { name: 'Discover, battle and build with every Digimon.' }),
