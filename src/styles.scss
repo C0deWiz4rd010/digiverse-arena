@@ -2,6 +2,7 @@
 // DigiVerse Arena — Global Styles
 // ============================================================================
 @use 'styles/tokens';
+@use 'styles/themes';
 @use 'styles/mixins' as *;
 @use 'styles/game-ui';
 
@@ -67,4 +68,38 @@ img {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+// App-level motion override (in addition to the OS preference).
+:root[data-motion='reduced'],
+:root[data-motion='off'] {
+  scroll-behavior: auto;
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+:root[data-motion='off'] *,
+:root[data-motion='off'] *::before,
+:root[data-motion='off'] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+// Performance / data-saver mode: drop expensive blur + glow.
+:root[data-fx='lite'] {
+  --shadow-neon-primary: none;
+  --shadow-neon-purple: none;
+}
+
+:root[data-fx='lite'] *,
+:root[data-fx='lite'] *::before,
+:root[data-fx='lite'] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

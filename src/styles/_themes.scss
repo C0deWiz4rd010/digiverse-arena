@@ -1,0 +1,76 @@
+// ============================================================================
+// DigiVerse Arena — Theme Presets
+// Each theme overrides the CSS custom properties defined in _tokens.scss.
+// Applied via a `data-theme` attribute on <html> by SettingsService.
+// The default (Cyber Cyan) lives in _tokens.scss; `[data-theme='cyber']` is a
+// no-op alias so the picker can always show an explicit selection.
+// ============================================================================
+
+// --- Cyber Cyan (default alias) --------------------------------------------
+:root[data-theme='cyber'] {
+  --theme-accent: var(--color-primary-500);
+}
+
+// --- Virus Crimson ----------------------------------------------------------
+:root[data-theme='crimson'] {
+  --color-primary-500: #ff2d6b;
+  --color-primary-400: #ff6a94;
+  --color-secondary-500: #ff8a3c;
+  --shadow-neon-primary: 0 0 24px rgba(255, 45, 107, 0.4);
+  --shadow-neon-purple: 0 0 28px rgba(255, 138, 60, 0.32);
+}
+
+// --- Data Emerald -----------------------------------------------------------
+:root[data-theme='emerald'] {
+  --color-primary-500: #17f0a0;
+  --color-primary-400: #5cffc0;
+  --color-secondary-500: #12b6ff;
+  --shadow-neon-primary: 0 0 24px rgba(23, 240, 160, 0.4);
+  --shadow-neon-purple: 0 0 28px rgba(18, 182, 255, 0.32);
+}
+
+// --- Vaccine Azure ----------------------------------------------------------
+:root[data-theme='azure'] {
+  --color-primary-500: #3d9bff;
+  --color-primary-400: #74bcff;
+  --color-secondary-500: #7c5cff;
+  --shadow-neon-primary: 0 0 24px rgba(61, 155, 255, 0.4);
+  --shadow-neon-purple: 0 0 28px rgba(124, 92, 255, 0.32);
+}
+
+// --- Nightmare Violet -------------------------------------------------------
+:root[data-theme='violet'] {
+  --color-bg-950: #0a0612;
+  --color-bg-900: #130a24;
+  --color-bg-800: #1d1136;
+  --color-primary-500: #a86bff;
+  --color-primary-400: #c79bff;
+  --color-secondary-500: #ff5cc4;
+  --shadow-neon-primary: 0 0 24px rgba(168, 107, 255, 0.42);
+  --shadow-neon-purple: 0 0 28px rgba(255, 92, 196, 0.34);
+}
+
+// --- Light Circuit ----------------------------------------------------------
+// A high-contrast daylight variant. Keeps neon accents but flips surfaces.
+:root[data-theme='light'] {
+  --color-bg-950: #eef2f8;
+  --color-bg-900: #e4eaf3;
+  --color-bg-800: #d7dfec;
+
+  --color-surface-900: rgba(255, 255, 255, 0.92);
+  --color-surface-800: rgba(246, 249, 253, 0.86);
+  --color-surface-glass: rgba(15, 30, 55, 0.05);
+
+  --color-primary-500: #007ea8;
+  --color-primary-400: #0098c9;
+  --color-secondary-500: #6d3bff;
+  --color-accent-500: #d97800;
+
+  --text-main: #10202f;
+  --text-muted: #3f5065;
+  --text-soft: #66788f;
+
+  --border-soft: rgba(15, 30, 55, 0.14);
+  --shadow-neon-primary: 0 0 18px rgba(0, 126, 168, 0.28);
+  --shadow-neon-purple: 0 0 20px rgba(109, 59, 255, 0.24);
+}

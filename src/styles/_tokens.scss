@@ -44,6 +44,21 @@
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
+  // Fluid type scale (mobile-first: scales smoothly from phone to desktop)
+  --text-2xs: clamp(0.62rem, 0.6rem + 0.1vw, 0.68rem);
+  --text-xs: clamp(0.72rem, 0.69rem + 0.15vw, 0.8rem);
+  --text-sm: clamp(0.82rem, 0.78rem + 0.2vw, 0.92rem);
+  --text-base: clamp(0.92rem, 0.88rem + 0.25vw, 1.02rem);
+  --text-lg: clamp(1.05rem, 0.98rem + 0.4vw, 1.24rem);
+  --text-xl: clamp(1.25rem, 1.12rem + 0.7vw, 1.6rem);
+  --text-2xl: clamp(1.5rem, 1.28rem + 1.1vw, 2.1rem);
+  --text-3xl: clamp(1.9rem, 1.55rem + 1.8vw, 2.9rem);
+
+  // Line heights
+  --leading-tight: 1.25;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
+
   // Spacing
   --space-1: 0.25rem;
   --space-2: 0.5rem;

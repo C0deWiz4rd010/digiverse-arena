@@ -144,6 +144,17 @@ export interface ScouterDuelRunRecord {
   createdAt: number;
 }
 
+export interface ProfileRecord {
+  id: 'local';
+  data: unknown;
+  updatedAt: number;
+}
+
+export interface AchievementRecord {
+  id: string;
+  unlockedAt: number;
+}
+
 /**
  * IndexedDB cache for DAPI data. Keeps Digimon details and metadata lists locally so the
  * app stays fast and partially works offline. User-owned data (favorites, teams, history)
@@ -166,6 +177,8 @@ export class DigiDb extends Dexie {
   skillForgeRuns!: Table<SkillForgeRunRecord, string>;
   squadDrillRuns!: Table<SquadDrillRunRecord, string>;
   scouterDuelRuns!: Table<ScouterDuelRunRecord, string>;
+  profile!: Table<ProfileRecord, string>;
+  achievements!: Table<AchievementRecord, string>;
 
   constructor() {
     super('digiverse-arena');
@@ -274,6 +287,26 @@ export class DigiDb extends Dexie {
       skillForgeRuns: 'id, programId, outcome, createdAt',
       squadDrillRuns: 'id, missionId, outcome, createdAt',
       scouterDuelRuns: 'id, scenarioId, outcome, createdAt',
+    });
+    this.version(9).stores({
+      digimon: 'id, cachedAt',
+      meta: 'resource, cachedAt',
+      teams: 'id, updatedAt, score',
+      battles: 'id, createdAt, mode, winner',
+      tournaments: 'id, tournamentId, status, updatedAt',
+      mastery: 'id, updatedAt',
+      settings: 'id',
+      favorites: 'id, createdAt',
+      notes: 'digimonId, updatedAt',
+      campaign: 'id, updatedAt',
+      miniGameRuns: 'id, gameId, result, createdAt',
+      rivalRuns: 'id, rivalId, outcome, createdAt',
+      expeditionRuns: 'id, expeditionId, fieldName, outcome, createdAt',
+      skillForgeRuns: 'id, programId, outcome, createdAt',
+      squadDrillRuns: 'id, missionId, outcome, createdAt',
+      scouterDuelRuns: 'id, scenarioId, outcome, createdAt',
+      profile: 'id, updatedAt',
+      achievements: 'id, unlockedAt',
     });
   }
 }

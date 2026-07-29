@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { PlayerService } from '../player/player.service';
 import {
   digiDb,
   type BattleHistoryRecord,
@@ -32,6 +33,15 @@ import { dayIndex } from '../utils/seed';
 
 @Injectable({ providedIn: 'root' })
 export class GameProgressRepository {
+  private readonly player = inject(PlayerService);
+
+  /** Credit bits to the wallet and re-check achievement unlocks after a reward. */
+  private async reward(bits: number): Promise<void> {
+    if (bits > 0) await this.player.addBits(bits);
+    const facts = await this.campaignFacts();
+    await this.player.syncAchievements(facts);
+  }
+
   async listFavorites(): Promise<FavoriteRecord[]> {
     return digiDb.favorites.orderBy('createdAt').reverse().toArray().catch(() => []);
   }
@@ -117,6 +127,7 @@ export class GameProgressRepository {
     });
     await this.applyMastery({ track: 'arena', amount: record.winner === 'player' ? 9 : 4, reason: record.mode });
     await this.applyMastery({ track: 'tactics', amount: 3, reason: 'Battle analysis' });
+    await this.reward(record.winner === 'player' ? 12 : 4);
   }
 
   async listTournaments(limit = 8): Promise<TournamentHistoryRecord[]> {
@@ -135,6 +146,7 @@ export class GameProgressRepository {
     });
     await this.applyMastery({ track: 'arena', amount: 14, reason: record.name });
     await this.applyMastery({ track: 'tactics', amount: 8, reason: 'Bracket planning' });
+    await this.reward(record.status === 'complete' ? 40 : 16);
   }
 
   async mastery(): Promise<DigiCoreProfile> {
@@ -251,6 +263,7 @@ export class GameProgressRepository {
     const claimedQuestIds = [...state.claimedQuestIds, quest.id];
     await this.saveCampaignState({ ...state, claimedQuestIds });
     await this.applyMastery({ track: quest.track, amount: quest.rewardMastery, reason: quest.title });
+    await this.reward(quest.rewardMastery);
     return true;
   }
 
@@ -301,6 +314,7 @@ export class GameProgressRepository {
       amount: result.masteryAmount,
       reason: `Scouter Duel ${result.scenario.title}`,
     });
+    await this.reward(result.rewardBits);
   }
 
   async saveSquadDrillRun(result: SquadDrillResult): Promise<void> {
@@ -326,6 +340,7 @@ export class GameProgressRepository {
       amount: result.masteryAmount,
       reason: `Squad Lab ${result.mission.title}`,
     });
+    await this.reward(result.rewardBits);
   }
 
   async saveSkillForgeRun(result: SkillForgeResult): Promise<void> {
@@ -352,6 +367,7 @@ export class GameProgressRepository {
       amount: result.masteryAmount,
       reason: `Skill Forge ${result.program.title}`,
     });
+    await this.reward(result.rewardBits);
   }
 
   async saveExpeditionRun(result: FieldExpeditionResult): Promise<void> {
@@ -378,6 +394,7 @@ export class GameProgressRepository {
       amount: result.masteryAmount,
       reason: `Field Expedition ${result.expedition.fieldName}`,
     });
+    await this.reward(result.rewardBits);
   }
 
   async saveRivalRun(result: RivalDuelResult): Promise<void> {
@@ -403,6 +420,7 @@ export class GameProgressRepository {
       amount: result.masteryAmount,
       reason: `Rival Signal ${result.signal.rivalName}`,
     });
+    await this.reward(result.rewardBits);
   }
 
   async recordMiniGame(
@@ -430,6 +448,7 @@ export class GameProgressRepository {
       amount: result === 'win' ? 7 : 2,
       reason: result === 'win' ? `Mini-Game ${gameId}` : `Mini-Game practice ${gameId}`,
     });
+    await this.reward(result === 'win' ? rewardBits : 0);
   }
 
   async clearUserData(): Promise<void> {
@@ -448,6 +467,8 @@ export class GameProgressRepository {
       digiDb.skillForgeRuns.clear(),
       digiDb.squadDrillRuns.clear(),
       digiDb.scouterDuelRuns.clear(),
+      digiDb.profile.clear(),
+      digiDb.achievements.clear(),
     ]);
   }
 }
