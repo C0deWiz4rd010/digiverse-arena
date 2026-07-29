@@ -234,4 +234,33 @@ export class PlayerService {
       version: 1,
     });
   }
+
+  /** Import a previously exported save. Returns false on malformed input. */
+  async importSave(json: string): Promise<boolean> {
+    try {
+      const parsed = JSON.parse(json) as { profile?: unknown; achievements?: unknown };
+      if (!parsed || typeof parsed !== 'object' || !parsed.profile) return false;
+      const profile = normalizePlayerProfile(parsed.profile as Partial<PlayerProfile>);
+      this.state.set(profile);
+      await digiDb.profile.put({ id: DB_KEY, data: profile, updatedAt: Date.now() });
+      if (Array.isArray(parsed.achievements)) {
+        const ids = parsed.achievements.filter((id): id is string => typeof id === 'string');
+        const now = Date.now();
+        await digiDb.achievements.clear().catch(() => undefined);
+        await digiDb.achievements
+          .bulkPut(ids.map((id) => ({ id, unlockedAt: now })))
+          .catch(() => undefined);
+        this.unlockedIds.set(new Set(ids));
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Reset the in-memory tamer to defaults (used after a full data reset). */
+  resetLocal(): void {
+    this.state.set(defaultPlayerProfile());
+    this.unlockedIds.set(new Set());
+  }
 }

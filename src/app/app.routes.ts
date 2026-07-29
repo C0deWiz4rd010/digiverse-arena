@@ -82,7 +82,7 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    loadComponent: () => import('./features/game/game-pages').then((m) => m.SettingsPage),
+    loadComponent: () => import('./features/settings/settings').then((m) => m.SettingsPage),
   },
   { path: '**', redirectTo: '' },
 ];

@@ -65,7 +65,6 @@ async function loadMany(repo: DigimonRepository, ids: number[]): Promise<Digimon
   const settled = await Promise.allSettled(ids.map((id) => repo.getDigimon(id)));
   return settled.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
 }
-
 @Component({
   selector: 'app-digidex',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -866,47 +865,5 @@ export class RandomBattlePage {
       ),
     );
     return [...new Set(pages.flatMap((page) => page.items.map((item) => item.id)))].slice(0, count);
-  }
-}
-
-@Component({
-  selector: 'app-settings',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="page">
-      <header class="page-head">
-        <p class="eyebrow">Settings</p>
-        <h2>Manage your data</h2>
-        <p class="lead">Everything is stored on your device. You can clear it here at any time.</p>
-      </header>
-      <div class="grid">
-        <article class="panel">
-          <h3>Cached Digimon data</h3>
-          <p class="muted">Removes downloaded Digimon info. The app will fetch it again next time you need it.</p>
-          <button class="btn" type="button" (click)="clearCache()">Clear cache</button>
-        </article>
-        <article class="panel">
-          <h3>Your progress</h3>
-          <p class="muted">Removes your favorites, notes, teams, battle history and all other saved progress. This can't be undone.</p>
-          <button class="btn btn--accent" type="button" (click)="clearUserData()">Reset all progress</button>
-        </article>
-      </div>
-      @if (message()) { <div class="panel">{{ message() }}</div> }
-    </section>
-  `,
-})
-export class SettingsPage {
-  private readonly repo = inject(DigimonRepository);
-  private readonly progress = inject(GameProgressRepository);
-  protected readonly message = signal('');
-
-  protected async clearCache(): Promise<void> {
-    await this.repo.clearCache();
-    this.message.set('API cache cleared.');
-  }
-
-  protected async clearUserData(): Promise<void> {
-    await this.progress.clearUserData();
-    this.message.set('Local game data cleared.');
   }
 }
