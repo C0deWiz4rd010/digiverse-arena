@@ -505,48 +505,6 @@ export class FieldExplorerPage {
 }
 
 @Component({
-  selector: 'app-skill-library',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
-  template: `
-    <section class="page">
-      <header class="page-head">
-        <p class="eyebrow">Skills</p>
-        <h2>Browse all skills</h2>
-        <p class="lead">Search the full list of skills. Want to try skill combos? Open Skill Training.</p>
-      </header>
-      <div class="toolbar">
-        <input class="input" type="search" placeholder="Search skills" [value]="query()" (input)="query.set($any($event.target).value)" />
-        <a class="btn btn--primary" routerLink="/skill-forge">Open Skill Training</a>
-      </div>
-      <div class="grid">
-        @for (skill of filtered(); track skill.id) {
-          <article class="panel">
-            <p class="eyebrow">Skill #{{ skill.id }}</p>
-            <h3>{{ skill.name }}</h3>
-          </article>
-        }
-      </div>
-    </section>
-  `,
-})
-export class SkillLibraryPage {
-  private readonly repo = inject(DigimonRepository);
-  protected readonly query = signal('');
-  protected readonly skills = signal<MetaEntry[]>([]);
-  protected readonly filtered = computed(() => {
-    const query = this.query().trim().toLowerCase();
-    return this.skills()
-      .filter((skill) => !query || skill.name.toLowerCase().includes(query))
-      .slice(0, 80);
-  });
-
-  constructor() {
-    void this.repo.getMeta('skill').then((skills) => this.skills.set(skills));
-  }
-}
-
-@Component({
   selector: 'app-nexus-lab',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],

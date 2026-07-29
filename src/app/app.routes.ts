@@ -41,7 +41,7 @@ export const routes: Routes = [
   },
   {
     path: 'skills',
-    loadComponent: () => import('./features/game/game-pages').then((m) => m.SkillLibraryPage),
+    loadComponent: () => import('./features/game/skill-library-page').then((m) => m.SkillLibraryPage),
   },
   {
     path: 'skill-forge',
