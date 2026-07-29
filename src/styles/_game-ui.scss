@@ -1889,3 +1889,73 @@
     transform: rotate(360deg) scale(0.92);
   }
 }
+
+// ============================================================================
+// Mobile-first refinements: collapse fixed multi-column layouts on phones and
+// tune card / image sizing so nothing feels cramped on small screens.
+// ============================================================================
+@media (max-width: 640px) {
+  .detail-hero,
+  .battle-stage,
+  .tournament-command,
+  .tournament-showcase,
+  .tournament-broadcast,
+  .reward-draft,
+  .prediction-slip,
+  .story-beat {
+    grid-template-columns: 1fr;
+  }
+
+  .prediction-slip {
+    gap: var(--space-3);
+  }
+
+  .versus {
+    font-size: clamp(1.6rem, 9vw, 2.4rem);
+  }
+
+  // Denser card grid: 2 columns on phones instead of 1 wide column.
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .grid--wide {
+    grid-template-columns: 1fr;
+  }
+
+  .monster-card__image {
+    min-height: 118px;
+  }
+
+  .monster-card__image img {
+    height: 118px;
+  }
+
+  .detail-hero__image {
+    min-height: 200px;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: var(--space-2);
+  }
+
+  .quest-strip,
+  .encounter-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .log,
+  .spotlight-log {
+    max-height: 220px;
+  }
+}
+
+// Very small phones (<=360px): single-column card grid to keep text readable.
+@media (max-width: 360px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+

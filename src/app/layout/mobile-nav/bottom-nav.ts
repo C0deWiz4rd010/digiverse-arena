@@ -1,5 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
+import { GameProgressRepository } from '../../core/repositories/game-progress-repository';
+import { SoundService } from '../../core/feedback/sound.service';
+import { HapticsService } from '../../core/feedback/haptics.service';
 
 interface NavItem {
   path: string;
@@ -25,6 +29,7 @@ interface NavGroup {
           [routerLink]="item.path"
           routerLinkActive="bottom-nav__item--active"
           [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+          (click)="tap()"
         >
           <span class="bottom-nav__icon" aria-hidden="true">{{ item.icon }}</span>
           <span class="bottom-nav__label">{{ item.label }}</span>
@@ -37,7 +42,14 @@ interface NavGroup {
         (click)="toggleMenu()"
         aria-label="More sections"
       >
-        <span class="bottom-nav__icon" aria-hidden="true">☰</span>
+        <span class="bottom-nav__icon" aria-hidden="true">
+          ☰
+          @if (claimable() > 0) {
+            <span class="bottom-nav__badge" [attr.aria-label]="claimable() + ' rewards ready'">
+              {{ claimable() }}
+            </span>
+          }
+        </span>
         <span class="bottom-nav__label">More</span>
       </button>
     </nav>
@@ -92,14 +104,51 @@ interface NavGroup {
       font-size: 0.66rem;
       letter-spacing: 0.03em;
       text-decoration: none;
-      transition: color 0.18s ease;
+      transition:
+        color 0.18s ease,
+        transform 0.12s ease;
+    }
+    .bottom-nav__item:active {
+      transform: scale(0.92);
     }
     .bottom-nav__icon {
+      position: relative;
       font-size: 1.1rem;
       line-height: 1;
+      transition: transform 0.18s ease;
     }
     .bottom-nav__item--active {
       color: var(--color-primary-400);
+    }
+    .bottom-nav__item--active .bottom-nav__icon {
+      transform: translateY(-2px) scale(1.12);
+      filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-primary-400) 60%, transparent));
+    }
+    .bottom-nav__item--active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 26px;
+      height: 3px;
+      border-radius: var(--radius-pill);
+      background: var(--color-primary-400);
+      box-shadow: var(--shadow-neon-primary);
+    }
+    .bottom-nav__badge {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 4px;
+      border-radius: var(--radius-pill);
+      background: var(--color-accent-500);
+      color: #1a0d03;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 700;
+      line-height: 15px;
+      text-align: center;
     }
     .sheet {
       position: fixed;
@@ -117,7 +166,7 @@ interface NavGroup {
       left: 0;
       right: 0;
       bottom: 0;
-      max-height: 78vh;
+      max-height: min(78vh, calc(100dvh - 3rem));
       overflow-y: auto;
       padding: var(--space-3) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
       background: var(--color-bg-900);
@@ -174,7 +223,18 @@ interface NavGroup {
 })
 export class BottomNav {
   private readonly router = inject(Router);
+  private readonly progress = inject(GameProgressRepository);
+  private readonly sound = inject(SoundService);
+  private readonly haptics = inject(HapticsService);
   protected readonly menuOpen = signal(false);
+  protected readonly claimable = signal(0);
+
+  constructor() {
+    void this.refreshBadge();
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => void this.refreshBadge());
+  }
 
   protected readonly primary: NavItem[] = [
     { path: '/', label: 'Home', icon: '🏠' },
@@ -225,6 +285,7 @@ export class BottomNav {
   ];
 
   protected toggleMenu(): void {
+    this.tap();
     this.menuOpen.update((open) => !open);
   }
 
@@ -233,7 +294,22 @@ export class BottomNav {
   }
 
   protected navigate(path: string): void {
+    this.tap();
     this.closeMenu();
     void this.router.navigate([path]);
+  }
+
+  protected tap(): void {
+    this.sound.tap();
+    this.haptics.tap();
+  }
+
+  private async refreshBadge(): Promise<void> {
+    try {
+      const quests = await this.progress.dailyQuestBoard();
+      this.claimable.set(quests.filter((quest) => quest.status === 'claimable').length);
+    } catch {
+      this.claimable.set(0);
+    }
   }
 }

@@ -5,10 +5,11 @@ import { Sidebar } from './layout/desktop-sidebar/sidebar';
 import { PlayerService } from './core/player/player.service';
 import { TamerAvatar } from './design-system/components/tamer-avatar';
 import { ToastHost } from './design-system/components/toast-host';
+import { ScrollTopFab } from './design-system/components/scroll-top-fab';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, BottomNav, Sidebar, TamerAvatar, ToastHost],
+  imports: [RouterOutlet, RouterLink, BottomNav, Sidebar, TamerAvatar, ToastHost, ScrollTopFab],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
