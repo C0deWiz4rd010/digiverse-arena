@@ -1,7 +1,19 @@
 <div class="app-shell">
   <header class="app-shell__topbar">
-    <span class="app-shell__logo" aria-hidden="true">◈</span>
-    <h1 class="app-shell__brand">{{ brand() }}</h1>
+    <a class="app-shell__brandlink" routerLink="/">
+      <span class="app-shell__logo" aria-hidden="true">◈</span>
+      <h1 class="app-shell__brand">{{ brand() }}</h1>
+    </a>
+
+    @if (onboarded()) {
+      <a class="app-shell__tamer" routerLink="/collection" aria-label="Your tamer profile">
+        <span class="app-shell__bits" title="Bits">
+          <span aria-hidden="true">💠</span>{{ bitsLabel() }}
+        </span>
+        <span class="app-shell__rank">Lv {{ rank().level }}</span>
+        <digi-tamer-avatar [seed]="profile().avatarSeed" [name]="profile().tamerName" [size]="34" />
+      </a>
+    }
   </header>
 
   <div class="app-shell__body">

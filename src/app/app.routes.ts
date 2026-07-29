@@ -6,6 +6,10 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () => import('./features/home/home').then((m) => m.Home),
   },
+  {
+    path: 'welcome',
+    loadComponent: () => import('./features/onboarding/onboarding').then((m) => m.OnboardingPage),
+  },
   { path: 'dex', loadComponent: () => import('./features/game/game-pages').then((m) => m.DigiDexPage) },
   {
     path: 'dex/:id',
