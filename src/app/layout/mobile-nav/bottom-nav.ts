@@ -216,6 +216,7 @@ export class BottomNav {
       title: 'More',
       items: [
         { path: '/profile', label: 'Profile', icon: '🧬' },
+        { path: '/achievements', label: 'Achievements', icon: '🏅' },
         { path: '/minigames', label: 'Mini-Games', icon: '🕹️' },
         { path: '/settings', label: 'Settings', icon: '⚙️' },
       ],

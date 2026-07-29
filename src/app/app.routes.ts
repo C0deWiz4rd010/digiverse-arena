@@ -14,6 +14,10 @@ export const routes: Routes = [
     path: 'profile',
     loadComponent: () => import('./features/profile/profile').then((m) => m.ProfilePage),
   },
+  {
+    path: 'achievements',
+    loadComponent: () => import('./features/profile/achievements').then((m) => m.AchievementsPage),
+  },
   { path: 'dex', loadComponent: () => import('./features/game/game-pages').then((m) => m.DigiDexPage) },
   {
     path: 'dex/:id',

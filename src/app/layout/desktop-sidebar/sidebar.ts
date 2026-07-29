@@ -141,7 +141,10 @@ export class Sidebar {
     },
     {
       title: 'Fun',
-      items: [{ path: '/minigames', label: 'Mini-Games', icon: '🕹️' }],
+      items: [
+        { path: '/minigames', label: 'Mini-Games', icon: '🕹️' },
+        { path: '/achievements', label: 'Achievements', icon: '🏅' },
+      ],
     },
   ];
 }

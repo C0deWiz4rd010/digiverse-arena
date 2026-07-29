@@ -4,10 +4,11 @@ import { BottomNav } from './layout/mobile-nav/bottom-nav';
 import { Sidebar } from './layout/desktop-sidebar/sidebar';
 import { PlayerService } from './core/player/player.service';
 import { TamerAvatar } from './design-system/components/tamer-avatar';
+import { ToastHost } from './design-system/components/toast-host';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, BottomNav, Sidebar, TamerAvatar],
+  imports: [RouterOutlet, RouterLink, BottomNav, Sidebar, TamerAvatar, ToastHost],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { PlayerService } from '../player/player.service';
+import { ToastService } from '../feedback/toast.service';
 import {
   digiDb,
   type BattleHistoryRecord,
@@ -34,12 +35,16 @@ import { dayIndex } from '../utils/seed';
 @Injectable({ providedIn: 'root' })
 export class GameProgressRepository {
   private readonly player = inject(PlayerService);
+  private readonly toasts = inject(ToastService);
 
   /** Credit bits to the wallet and re-check achievement unlocks after a reward. */
   private async reward(bits: number): Promise<void> {
     if (bits > 0) await this.player.addBits(bits);
     const facts = await this.campaignFacts();
-    await this.player.syncAchievements(facts);
+    const unlocked = await this.player.syncAchievements(facts);
+    for (const def of unlocked) {
+      this.toasts.reward(`Achievement: ${def.title}`, `+${def.rewardBits} bits`, def.icon);
+    }
   }
 
   async listFavorites(): Promise<FavoriteRecord[]> {
